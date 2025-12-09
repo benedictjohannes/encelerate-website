@@ -1,0 +1,60 @@
+---
+import '../styles/global.css'
+import '../components/TsParticleBackground.astro'
+
+interface Props {
+    title: string
+}
+
+const { title } = Astro.props
+import { SITE_TITLE } from '../consts'
+import TsParticleBackground from '../components/TsParticleBackground.astro'
+---
+
+<!doctype html>
+<html lang='en'>
+    <head>
+        <meta charset='UTF-8' />
+        <meta name='description' content='Astro description' />
+        <meta name='viewport' content='width=device-width' />
+        <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+        <meta name='generator' content={Astro.generator} />
+        <title>{title ? `${title} - ${SITE_TITLE}` : SITE_TITLE}</title>
+    </head>
+    <body>
+        <TsParticleBackground />
+        <slot />
+    </body>
+</html>
+<style is:global>
+    @reference '../styles/global.css';
+    body {
+        @apply bg-gray-100 dark:bg-gray-900 transition-colors duration-500;
+    }
+    :root {
+        --astro-code-color-text: #f8f8f8;
+        --astro-code-color-background: #111111;
+        --astro-code-token-constant: #ff99cc;
+        --astro-code-token-string: #66ff66;
+        --astro-code-token-comment: #888;
+        --astro-code-token-keyword: #66ccff;
+        --astro-code-token-function: #ffcc66;
+        --astro-code-token-punctuation: #ccc;
+        --astro-code-token-link: #66ff66;
+    }
+
+    html {
+        font-family: system-ui, sans-serif;
+    }
+    code {
+        font-family:
+            Menlo,
+            Monaco,
+            Lucida Console,
+            Liberation Mono,
+            DejaVu Sans Mono,
+            Bitstream Vera Sans Mono,
+            Courier New,
+            monospace;
+    }
+</style>

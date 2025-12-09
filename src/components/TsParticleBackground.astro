@@ -1,0 +1,60 @@
+<div id='tsparticles' class='absolute inset-0 z-[-1]'></div>
+
+<script>
+    // The logic is wrapped in an async function for dynamic imports
+    async function loadParticles() {
+        // 1. Dynamic Import: This splits the code!
+        // The browser won't download these 20kb+ files until this line runs.
+        const { tsParticles } = await import('@tsparticles/engine')
+        const { loadLinksPreset } = await import('@tsparticles/preset-links')
+
+        const darkMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+
+        // Configuration Logic
+        const setOptions = (isDark: boolean) => {
+            tsParticles.load({
+                id: 'tsparticles',
+                options: {
+                    preset: 'links',
+                    // Keep background transparent so CSS handles the color
+                    background: { color: { value: 'transparent' } },
+                    particles: {
+                        links: {
+                            color: { value: isDark ? '#888888' : '#000000' },
+                        },
+                        color: {
+                            value: isDark ? '#888888' : '#000000',
+                        },
+                    },
+                },
+            })
+        }
+
+        // Initialize
+        await loadLinksPreset(tsParticles)
+        setOptions(darkMediaQuery.matches)
+
+        // Listener for theme changes
+        darkMediaQuery.addEventListener('change', e => setOptions(e.matches))
+    }
+    const userAgent = navigator.userAgent
+
+    // Common checks for server-side or crawler environments
+    const isCrawler =
+        /bot|spider|google|headless/i.test(userAgent) ||
+        !('requestIdleCallback' in window)
+    if (isCrawler) {
+        return
+    }
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => {
+            loadParticles()
+        })
+    } else {
+        // Fallback for Safari < 2019 or obscure browsers:
+        // Use a small timeout to push this to the end of the event loop
+        setTimeout(() => {
+            loadParticles()
+        }, 200)
+    }
+</script>
