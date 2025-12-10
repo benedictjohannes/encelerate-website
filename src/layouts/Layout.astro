@@ -4,9 +4,11 @@ import '../components/TsParticleBackground.astro'
 
 interface Props {
     title: string
+    description?: string
+    pageType?: 'website' | 'article'
 }
 
-const { title } = Astro.props
+const { title, description, pageType } = Astro.props
 import { SITE_TITLE } from '../consts'
 import TsParticleBackground from '../components/TsParticleBackground.astro'
 ---
@@ -15,11 +17,19 @@ import TsParticleBackground from '../components/TsParticleBackground.astro'
 <html lang='en'>
     <head>
         <meta charset='UTF-8' />
-        <meta name='description' content='Astro description' />
         <meta name='viewport' content='width=device-width' />
         <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
         <meta name='generator' content={Astro.generator} />
         <title>{title ? `${title} - ${SITE_TITLE}` : SITE_TITLE}</title>
+        <meta property='og:site_name' content={SITE_TITLE} />
+        <meta property='og:title' content={title} />
+        {description && <meta name='description' content={description} />}
+        {
+            description && (
+                <meta property='og:description' content={description} />
+            )
+        }
+        {pageType && <meta property='og:type' content={pageType} />}
     </head>
     <body>
         <TsParticleBackground />

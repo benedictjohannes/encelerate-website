@@ -15,7 +15,11 @@ const post = Astro.props
 const { Content } = await render(post)
 ---
 
-<Layout title={post.data.title}>
+<Layout
+    title={post.data.title}
+    pageType='article'
+    description={post.data.description}
+>
     <main class='max-w-4xl mx-auto py-8 px-4'>
         <a
             href='/blog'
