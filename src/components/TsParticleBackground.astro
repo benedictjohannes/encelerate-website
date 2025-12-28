@@ -34,17 +34,20 @@
         // Listener for theme changes
         darkMediaQuery.addEventListener('change', e => setOptions(e.matches))
     }
-    const isCrawler =
-        /bot|spider|google|headless/i.test(navigator.userAgent) 
-    if (!isCrawler) {
-        if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(() => {
-                loadParticles()
-            })
-        } else {
-            setTimeout(() => {
-                loadParticles()
-            }, 200)
-        }
+
+    // Check if it's a crawler to avoid unnecessary resource usage
+    const isCrawler = /bot|spider|google|headless/i.test(navigator.userAgent);
+
+    // Use a helper to ensure it only runs once and after assets are loaded
+    const init = () => {
+        if (isCrawler || document.querySelector('#tsparticles canvas')) return;
+        loadParticles();
+    };
+
+    // Check if the page is already loaded, otherwise wait for the 'load' event
+    if (document.readyState === 'complete') {
+        init();
+    } else {
+        window.addEventListener('load', init, { once: true });
     }
 </script>
