@@ -36,35 +36,3 @@ const { title, description, pageType, particles = true } = Astro.props
         <slot />
     </body>
 </html>
-<style is:global>
-    @reference '../styles/global.css';
-    body {
-        @apply dark:bg-gray-900 transition-colors duration-500;
-    }
-    :root {
-        --astro-code-color-text: #f8f8f8;
-        --astro-code-color-background: #111111;
-        --astro-code-token-constant: #ff99cc;
-        --astro-code-token-string: #66ff66;
-        --astro-code-token-comment: #888;
-        --astro-code-token-keyword: #66ccff;
-        --astro-code-token-function: #ffcc66;
-        --astro-code-token-punctuation: #ccc;
-        --astro-code-token-link: #66ff66;
-    }
-
-    html {
-        font-family: system-ui, sans-serif;
-    }
-    code {
-        font-family:
-            Menlo,
-            Monaco,
-            Lucida Console,
-            Liberation Mono,
-            DejaVu Sans Mono,
-            Bitstream Vera Sans Mono,
-            Courier New,
-            monospace;
-    }
-</style>

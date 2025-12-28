@@ -1,5 +1,37 @@
 @import 'tailwindcss';
 
+html {
+    font-family: system-ui, sans-serif;
+}
+
+body {
+    @apply dark:bg-gray-900 transition-colors duration-500;
+}
+
+code {
+    font-family:
+    Menlo,
+    Monaco,
+    Lucida Console,
+    Liberation Mono,
+    DejaVu Sans Mono,
+    Bitstream Vera Sans Mono,
+    Courier New,
+    monospace;
+}
+
+:root {
+    --astro-code-color-text: #f8f8f8;
+    --astro-code-color-background: #111111;
+    --astro-code-token-constant: #ff99cc;
+    --astro-code-token-string: #66ff66;
+    --astro-code-token-comment: #888;
+    --astro-code-token-keyword: #66ccff;
+    --astro-code-token-function: #ffcc66;
+    --astro-code-token-punctuation: #ccc;
+    --astro-code-token-link: #66ff66;
+}
+
 .astro-code {
     border-radius: 8px;
     padding: 8px;
@@ -7,10 +39,10 @@
 @media (prefers-color-scheme: dark) {
     .astro-code,
     .astro-code span {
-        color: var(--shiki-dark) !important;
-        background-color: var(--shiki-dark-bg) !important;
-        font-style: var(--shiki-dark-font-style) !important;
-        font-weight: var(--shiki-dark-font-weight) !important;
-        text-decoration: var(--shiki-dark-text-decoration) !important;
+        color: var(--shiki-dark);
+        background-color: var(--shiki-dark-bg);
+        font-style: var(--shiki-dark-font-style);
+        font-weight: var(--shiki-dark-font-weight);
+        text-decoration: var(--shiki-dark-text-decoration);
     }
 }
