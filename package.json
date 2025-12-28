@@ -16,6 +16,7 @@
     "@tsparticles/engine": "^3.9.1",
     "@tsparticles/preset-links": "^3.2.0",
     "astro": "^5.16.4",
+    "astro-expressive-code": "^0.41.5",
     "sharp": "^0.34.3",
     "tailwindcss": "^4.1.17"
   }
