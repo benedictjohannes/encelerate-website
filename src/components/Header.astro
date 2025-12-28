@@ -1,0 +1,141 @@
+---
+// Header.astro
+---
+<header id="main-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 flex items-center px-6 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md h-[60px] border-b border-neutral-200/50 dark:border-neutral-800/50">
+  <div class="max-w-7xl mx-auto w-full flex justify-between items-center h-full">
+    <!-- Left: Logo -->
+    <a href="/" class="text-xl font-bold dark:text-white transition-all duration-300" id="header-logo">LOGO</a>
+
+    <!-- Center: Links (Desktop) -->
+    <nav class="hidden md:flex space-x-12 text-sm font-semibold uppercase tracking-wider h-full items-center">
+      <a href="/blog" class="hover:text-blue-500 dark:text-neutral-300 dark:hover:text-white transition-colors">Blog</a>
+      <a href="/about" class="hover:text-blue-500 dark:text-neutral-300 dark:hover:text-white transition-colors">About</a>
+    </nav>
+
+    <!-- Right: Dark Mode Toggle (Desktop) -->
+    <div class="hidden md:flex items-center">
+      <button id="theme-toggle" class="p-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all cursor-pointer group" aria-label="Toggle dark mode">
+        <span class="sun hidden group-hover:rotate-12 transition-transform">🌞</span>
+        <span class="moon hidden group-hover:-rotate-12 transition-transform">🌙</span>
+      </button>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-toggle" class="md:hidden p-2 text-2xl dark:text-white cursor-pointer" aria-label="Toggle mobile menu">
+      <span class="menu-icon">☰</span>
+      <span class="close-icon hidden">✕</span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="fixed inset-0 top-[60px] bg-white dark:bg-neutral-900 hidden flex-col md:hidden z-40 transition-all duration-300 h-[calc(100dvh-60px)]">
+    <div class="flex-1 overflow-y-auto p-8">
+      <nav class="flex flex-col space-y-8 text-2xl font-bold mt-4">
+        <a href="/" class="dark:text-white border-b border-neutral-100 dark:border-neutral-800 pb-4">Home</a>
+        <a href="/blog" class="dark:text-white border-b border-neutral-100 dark:border-neutral-800 pb-4">Blog</a>
+        <a href="/about" class="dark:text-white border-b border-neutral-100 dark:border-neutral-800 pb-4">About</a>
+      </nav>
+    </div>
+    <div class="p-8 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 pb-[env(safe-area-inset-bottom,2rem)]">
+      <button id="theme-toggle-mobile" class="w-full flex items-center justify-between bg-neutral-100 dark:bg-neutral-800 px-6 py-4 mb-4 rounded-2xl cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+         <span class="light-text dark:hidden text-neutral-800 font-bold">Light Mode</span>
+         <span class="sun dark:hidden">🌞</span>
+         <span class="dark-text hidden dark:block text-white font-bold">Dark Mode</span>
+         <span class="moon hidden dark:block">🌙</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const header = document.getElementById('main-header');
+  const logo = document.getElementById('header-logo');
+  const themeToggle = document.getElementById('theme-toggle');
+  const themeToggleMobile = document.getElementById('theme-toggle-mobile');
+  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const sunIcons = document.querySelectorAll('.sun');
+  const moonIcons = document.querySelectorAll('.moon');
+  const menuIcon = document.querySelector('.menu-icon');
+  const closeIcon = document.querySelector('.close-icon');
+
+  // Shrink header on scroll (Desktop only)
+  const handleScroll = () => {
+    const isScrolled = window.scrollY > window.innerHeight / 2;
+    const isDesktop = window.innerWidth >= 768;
+
+    if (isScrolled && isDesktop) {
+      header?.classList.remove('h-[60px]', 'bg-white/80', 'dark:bg-neutral-900/80', 'backdrop-blur-md');
+      header?.classList.add('h-[40px]', 'bg-white', 'dark:bg-neutral-900', 'shadow-lg');
+      logo?.classList.remove('text-xl');
+      logo?.classList.add('text-lg');
+    } else {
+      header?.classList.remove('h-[40px]', 'bg-white', 'dark:bg-neutral-900', 'shadow-lg');
+      header?.classList.add('h-[60px]', 'bg-white/80', 'dark:bg-neutral-900/80', 'backdrop-blur-md');
+      logo?.classList.remove('text-lg');
+      logo?.classList.add('text-xl');
+    }
+  };
+
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  window.addEventListener('resize', handleScroll);
+
+  // Mobile menu toggle
+  mobileMenuToggle?.addEventListener('click', () => {
+    const isHidden = mobileMenu?.classList.contains('hidden');
+    if (isHidden) {
+      mobileMenu?.classList.remove('hidden');
+      mobileMenu?.classList.add('flex');
+      menuIcon?.classList.add('hidden');
+      closeIcon?.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    } else {
+      mobileMenu?.classList.add('hidden');
+      mobileMenu?.classList.remove('flex');
+      menuIcon?.classList.remove('hidden');
+      closeIcon?.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+  });
+
+  // Theme logic
+  const getTheme = () => {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+      return localStorage.getItem('theme');
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
+
+  const updateIcons = (theme: string) => {
+    if (theme === 'dark') {
+      sunIcons.forEach(i => i.classList.add('hidden'));
+      moonIcons.forEach(i => i.classList.remove('hidden'));
+    } else {
+      sunIcons.forEach(i => i.classList.remove('hidden'));
+      moonIcons.forEach(i => i.classList.add('hidden'));
+    }
+  };
+
+  const setTheme = (theme: string) => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    updateIcons(theme);
+    localStorage.setItem('theme', theme);
+  };
+
+  // Initial set
+  setTheme(getTheme() || 'dark');
+
+  themeToggle?.addEventListener('click', () => {
+    const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+    setTheme(newTheme);
+  });
+
+  themeToggleMobile?.addEventListener('click', () => {
+    const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+    setTheme(newTheme);
+  });
+</script>
