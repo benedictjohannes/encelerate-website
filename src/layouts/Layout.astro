@@ -1,16 +1,16 @@
 ---
 import '../styles/global.css'
-import '../components/TsParticleBackground.astro'
+import TsParticleBackground from '../components/TsParticleBackground.astro'
+import { SITE_TITLE } from '../consts'
 
 interface Props {
     title: string
     description?: string
     pageType?: 'website' | 'article'
+    particles?: boolean
 }
 
-const { title, description, pageType } = Astro.props
-import { SITE_TITLE } from '../consts'
-import TsParticleBackground from '../components/TsParticleBackground.astro'
+const { title, description, pageType, particles = true } = Astro.props
 ---
 
 <!doctype html>
@@ -32,14 +32,14 @@ import TsParticleBackground from '../components/TsParticleBackground.astro'
         {pageType && <meta property='og:type' content={pageType} />}
     </head>
     <body>
-        <TsParticleBackground />
+        {particles && <TsParticleBackground />}
         <slot />
     </body>
 </html>
 <style is:global>
     @reference '../styles/global.css';
     body {
-        @apply bg-gray-100 dark:bg-gray-900 transition-colors duration-500;
+        @apply dark:bg-gray-900 transition-colors duration-500;
     }
     :root {
         --astro-code-color-text: #f8f8f8;
