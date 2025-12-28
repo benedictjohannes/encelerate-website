@@ -9,7 +9,15 @@ import expressiveCode from "astro-expressive-code";
 // https://astro.build/config
 export default defineConfig({
 	site: "https://encelerate.com",
-	integrations: [expressiveCode(), mdx(), sitemap()],
+	integrations: [
+		expressiveCode({
+			themes: ["github-light-high-contrast", "github-dark-high-contrast"],
+			useDarkModeMediaQuery: false,
+			themeCssSelector: (theme) => theme.type === "dark" ? ".dark" : ":root",
+		}),
+		mdx(),
+		sitemap(),
+	],
 	markdown: {
 		shikiConfig: {
 			themes: {

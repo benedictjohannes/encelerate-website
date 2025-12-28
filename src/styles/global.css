@@ -1,11 +1,13 @@
 @import 'tailwindcss';
 
+@variant dark (&:where(.dark, .dark *));
+
 html {
     font-family: system-ui, sans-serif;
 }
 
 body {
-    @apply dark:bg-neutral-900 transition-colors duration-500;
+    @apply bg-white dark:bg-neutral-900 transition-colors duration-500;
 }
 
 code {
@@ -36,13 +38,11 @@ code {
     border-radius: 8px;
     padding: 8px;
 }
-@media (prefers-color-scheme: dark) {
-    .astro-code,
-    .astro-code span {
-        color: var(--shiki-dark);
-        background-color: var(--shiki-dark-bg);
-        font-style: var(--shiki-dark-font-style);
-        font-weight: var(--shiki-dark-font-weight);
-        text-decoration: var(--shiki-dark-text-decoration);
-    }
+.dark .astro-code,
+.dark .astro-code span {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+    font-style: var(--shiki-dark-font-style);
+    font-weight: var(--shiki-dark-font-weight);
+    text-decoration: var(--shiki-dark-text-decoration);
 }

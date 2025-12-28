@@ -29,10 +29,19 @@
 
         // Initialize
         await loadLinksPreset(tsParticles)
-        setOptions(darkMediaQuery.matches)
+        
+        const isDark = () => document.documentElement.classList.contains('dark')
+        setOptions(isDark())
 
-        // Listener for theme changes
-        darkMediaQuery.addEventListener('change', e => setOptions(e.matches))
+        // Observer for theme changes (class toggle)
+        const observer = new MutationObserver(() => {
+            setOptions(isDark())
+        })
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class'],
+        })
     }
 
     // Check if it's a crawler to avoid unnecessary resource usage
