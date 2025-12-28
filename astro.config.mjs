@@ -18,6 +18,9 @@ export default defineConfig({
 			},
 		},
 	},
+	server: {
+		allowedHosts: true
+	},
 	vite: {
 		plugins: [tailwindcss()],
 	},
