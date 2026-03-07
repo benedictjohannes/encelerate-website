@@ -23,7 +23,7 @@ const { Content } = await render(post)
     <main class='max-w-4xl mx-auto py-8 px-4'>
         <a
             href='/blog'
-            class='text-blue-600 dark:text-blue-400 hover:underline text-lg mb-4 block'
+            class='text-amber-600 dark:text-amber-400 hover:underline text-lg mb-4 block'
             >&larr; Back to Articles</a
         >
         <h1 class='text-5xl font-bold text-neutral-900 dark:text-white mb-4'>
@@ -46,58 +46,3 @@ const { Content } = await render(post)
         </article>
     </main>
 </Layout>
-
-<style is:global>
-    @reference '../../styles/global.css';
-    .prose {
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            @apply text-neutral-900 dark:text-white;
-        }
-        h1 {
-            @apply text-4xl mt-4 mb-3 font-bold;
-        }
-        h2 {
-            @apply text-2xl mt-3 mb-2 font-bold;
-        }
-        h3 {
-            @apply text-xl mt-3 mb-2 font-bold;
-        }
-        h4 {
-            @apply text-lg mt-2 mb-2 font-bold;
-        }
-        h5,
-        h6 {
-            @apply mt-2 mb-2 font-bold;
-        }
-        p,
-        ul,
-        ol {
-            @apply mb-2 text-justify;
-        }
-        ul ul,
-        ol ol,
-        ul ol,
-        ol ul {
-            @apply ml-4;
-        }
-        p,
-        ul,
-        ol {
-            @apply text-neutral-800 dark:text-neutral-200;
-        }
-        li {
-            @apply list-disc list-inside;
-        }
-        ol {
-            @apply list-decimal;
-        }
-        a {
-            @apply text-blue-600 dark:text-blue-400 hover:underline;
-        }
-    }
-</style>

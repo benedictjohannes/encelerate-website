@@ -11,17 +11,17 @@ Here is a sample of some basic Markdown syntax that can be used when writing Mar
 
 The following HTML `<h1>`—`<h6>` elements represent six levels of section headings. `<h1>` is the highest section level while `<h6>` is the lowest.
 
-# H1
+# Heading 1 `#`
 
-## H2
+## Heading 2 `##`
 
-### H3
+### Heading 3 `###`
 
-#### H4
+#### Heading 4 `####`
 
-##### H5
+##### Heading 5 `#####`
 
-###### H6
+###### Heading 6 `######`
 
 ## Paragraph
 
@@ -64,14 +64,14 @@ The blockquote element represents content that is quoted from another source, op
 #### Syntax
 
 ```markdown
-> Don't communicate by sharing memory, share memory by communicating.<br>
-> — <cite>Rob Pike[^1]</cite>
+> Don't communicate by sharing memory, share memory by communicating.
+> <cite>Rob Pike[^1]</cite>
 ```
 
 #### Output
 
-> Don't communicate by sharing memory, share memory by communicating.<br>
-> — <cite>Rob Pike[^1]</cite>
+> Don't communicate by sharing memory, share memory by communicating.
+> <cite>Rob Pike[^1]</cite>
 
 [^1]: The above quote is excerpted from Rob Pike's [talk](https://www.youtube.com/watch?v=PAAkCSZUG1c) during Gopherfest, November 18, 2015.
 
@@ -80,16 +80,35 @@ The blockquote element represents content that is quoted from another source, op
 ### Syntax
 
 ```markdown
-| Italics   | Bold     | Code   |
-| --------- | -------- | ------ |
-| _italics_ | **bold** | `code` |
+| Drink       | Source            | Energy     |
+| :---------- | :---------------- | :--------- |
+| _Coffee_    | **Roasted Beans** | `High`     |
+| _Green Tea_ | **Dried Leaves**  | `Balanced` |
 ```
 
 ### Output
 
-| Italics   | Bold     | Code   |
-| --------- | -------- | ------ |
-| _italics_ | **bold** | `code` |
+| Drink       | Source            | Energy     |
+| :---------- | :---------------- | :--------- |
+| _Coffee_    | **Roasted Beans** | `High`     |
+| _Green Tea_ | **Dried Leaves**  | `Balanced` |
+
+## Premium Table Card
+
+For structured data that needs a sophisticated look, you can use the `table-card` and `table-title` wrappers. Note how the headers here use the custom sans-serif font instead of the global serif font.
+
+<div class="table-card">
+<div class="table-title"><h3>Comparison: Go vs Rust</h3></div>
+
+| Feature            | Go                       | Rust                           |
+| :----------------- | :----------------------- | :----------------------------- |
+| **Typing**         | Static, Strong           | Static, Strong, ADTs           |
+| **Concurrency**    | Goroutines & Channels    | Ownership & Send/Sync          |
+| **Performance**    | High (with Runtime GC)   | Exceptional (No Runtime GC)    |
+| **Error Handling** | explicit `if err != nil` | Result Type & Pattern Matching |
+| **Memory**         | Garbage Collected        | Borrow Checker (Zero Cost)     |
+
+</div>
 
 ## Code Blocks
 
@@ -177,13 +196,64 @@ we can use 3 backticks ``` in new line and write snippet and close with 3 backti
 
 #### Output
 
-- Fruit
-  - Apple
-  - Orange
-  - Banana
 - Dairy
   - Milk
   - Cheese
+
+## Links
+
+### Syntax
+
+```markdown
+[Inline-style link](https://google.com)
+
+[Link with title](https://google.com "Google's Homepage")
+```
+
+### Output
+
+[Inline-style link](https://google.com)
+
+[Link with title](https://google.com "Google's Homepage")
+
+## Horizontal Rules
+
+Three or more hyphens, asterisks, or underscores.
+
+---
+
+## Task Lists
+
+```markdown
+- [x] Completed task
+- [ ] Incomplete task
+- [ ] Another task
+```
+
+- [x] Completed task
+- [ ] Incomplete task
+- [ ] Another task
+
+## Emphasis & Strikethrough
+
+```markdown
+~~Strikethrough~~
+**_Combined Bold & Italics_**
+```
+
+~~Strikethrough text~~
+**_Combined Bold & Italics_**
+
+## Emojis ✨
+
+Most modern Markdown parsers support emoji shortcodes or direct Unicode.
+
+```markdown
+:rocket: :sparkles: :memo:
+```
+
+🚀 ✨ 📝
+
 
 ## Other Elements — abbr, sub, sup, kbd, mark
 
