@@ -23,7 +23,7 @@
 @variant dark (&:where(.dark, .dark *));
 
 html {
-    font-family: 'Raleway Variable', system-ui, sans-serif;
+    font-family: 'Reddit Sans Variable', system-ui, sans-serif;
 }
 
 h1,
@@ -141,7 +141,7 @@ code {
 
     th {
         @apply py-4 px-3 text-left text-amber-700 font-bold text-sm uppercase tracking-wider dark:text-amber-400;
-        font-family: 'Raleway Variable', system-ui, sans-serif !important;
+        font-family: 'Reddit Sans Variable', system-ui, sans-serif !important;
     }
 
     td {
@@ -175,7 +175,7 @@ code {
 .prose blockquote {
     @apply my-4 py-2 mx-8 md:mx-16 lg:mx-32 border-y-2 border-black/10 dark:border-white/20 relative;
     @apply italic text-stone-900 dark:text-stone-100 leading-relaxed;
-    font-family: 'Raleway Variable', system-ui, sans-serif;
+    font-family: 'Reddit Sans Variable', system-ui, sans-serif;
 
     &::before,
     &::after {
@@ -231,7 +231,7 @@ code {
     ul,
     ol {
         @apply mb-6 text-justify leading-[1.75] font-medium text-stone-800 dark:text-stone-200;
-        font-family: 'Raleway Variable', sans-serif;
+        font-family: 'Reddit Sans Variable', sans-serif;
     }
 
     ul,
