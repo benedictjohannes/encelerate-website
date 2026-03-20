@@ -1,11 +1,11 @@
 ---
-// Header.astro
+import logoImg from '../assets/logo/encelerateLogo.svg';
 ---
 <header id="main-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 flex items-center px-6 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md h-[60px] border-b border-neutral-200/50 dark:border-neutral-800/50">
   <div class="max-w-7xl mx-auto w-full flex justify-between items-center h-full">
     <!-- Left: Logo -->
     <a href="/" class="transition-all duration-300 flex items-center h-8" id="header-logo">
-      <img src="/src/assets/logo/encelerateLogo.svg" alt="Encelerate Logo" class="h-full w-auto" />
+      <img src={logoImg.src} alt="Encelerate Logo" class="h-full w-auto" />
     </a>
 
     <!-- Center: Links (Desktop) -->
