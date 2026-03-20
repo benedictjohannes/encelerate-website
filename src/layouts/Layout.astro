@@ -11,9 +11,10 @@ interface Props {
     description?: string
     pageType?: 'website' | 'article'
     particles?: boolean
+    markdownUrl?: string
 }
 
-const { title, description, pageType, particles = true } = Astro.props
+const { title, description, pageType, particles = true, markdownUrl } = Astro.props
 ---
 
 <!doctype html>
@@ -33,6 +34,7 @@ const { title, description, pageType, particles = true } = Astro.props
             )
         }
         {pageType && <meta property='og:type' content={pageType} />}
+        {markdownUrl && <link rel='alternate' type='text/markdown' href={markdownUrl} />}
         <script is:inline>
             const getTheme = () => {
                 if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
@@ -48,7 +50,7 @@ const { title, description, pageType, particles = true } = Astro.props
             }
         </script>
     </head>
-    <body class="pt-[60px]">
+    <body class="pt-15">
         {particles && <TsParticleBackground />}
         <Header />
         <main>
