@@ -1,0 +1,17 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "encelerate-website",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"compatibility_date": "2026-03-01",
+	"account_id": "198ea816f8d8cfcf33b2021e2956bf6a",
+	"d1_databases": [
+		{
+			"binding": "db",
+			"database_name": "encelerate-website-db",
+			"database_id": "498cba1f-7a6e-4ba1-9e7b-7188ad1f4b59"
+		}
+	],
+	"observability": {
+		"enabled": true
+	}
+}

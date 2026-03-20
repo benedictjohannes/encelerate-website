@@ -7,10 +7,12 @@ import { defineConfig } from "astro/config";
 import expressiveCode from "astro-expressive-code";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import cloudflare from "@astrojs/cloudflare";
 
 // https://astro.build/config
 export default defineConfig({
 	site: "https://encelerate.com",
+	adapter: cloudflare(),
 	integrations: [
 		expressiveCode({
 			themes: ["github-light-high-contrast", "github-dark-high-contrast"],

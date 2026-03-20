@@ -3,9 +3,9 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
+    "dev": "npx wrangler types && astro dev",
+    "build": "npx wrangler types && astro build",
+    "preview": "npx wrangler types && astro preview",
     "astro": "astro"
   },
   "dependencies": {
@@ -24,5 +24,9 @@
     "remark-math": "^6.0.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@astrojs/cloudflare": "^13.1.3",
+    "wrangler": "^4.76.0"
   }
 }
