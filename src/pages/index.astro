@@ -2,7 +2,9 @@
 import Layout from '../layouts/Layout.astro'
 import { getCollection } from 'astro:content'
 
-const allBlogPosts = await getCollection('blog')
+const allBlogPosts = await getCollection('blog', ({ data }) => {
+	return data.private !== true;
+})
 const sortedBlogPosts = allBlogPosts.sort(
     (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 )
