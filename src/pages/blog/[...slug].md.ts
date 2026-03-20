@@ -1,5 +1,13 @@
 import { getCollection } from 'astro:content'
-import { readFileSync } from 'node:fs'
+
+// Use Vite's glob import to bundle the raw content of all markdown/mdx files.
+// The `?raw` query tells Vite to treat the files as strings.
+// This works perfectly in Cloudflare Workers because the content is part of the JS bundle.
+const rawContentMap = import.meta.glob('/src/content/blog/**/*.{md,mdx}', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+}) as Record<string, string>
 
 export async function getStaticPaths() {
     const posts = await getCollection('blog')
@@ -12,18 +20,20 @@ export async function getStaticPaths() {
 export const GET = async ({ props }: { props: { post: any } }) => {
     const { post } = props
     
-    // Prioritize reading the original file to include frontmatter.
+    // Prioritize reading the original file content including frontmatter.
     let body = ''
 
-    if (post.filePath) {
-        try {
-            body = readFileSync(post.filePath, 'utf-8')
-        } catch (e) {
-            console.error(`Failed to read markdown file: ${post.filePath}`, e)
-        }
+    // Find the matching file in the rawContentMap. 
+    // Usually, the ID from getCollection matches the filename without extension.
+    const fileKey = Object.keys(rawContentMap).find(
+        key => key.endsWith(`/${post.id}.md`) || key.endsWith(`/${post.id}.mdx`)
+    )
+
+    if (fileKey) {
+        body = rawContentMap[fileKey]
     }
 
-    // Fallback to post.body if filePath failed or is missing.
+    // Fallback to post.body if raw lookup failed.
     if (!body) {
         body = post.body
     }
