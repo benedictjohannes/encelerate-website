@@ -17,6 +17,8 @@ interface Props {
 }
 
 const { title, description, pageType, particles = true, markdownUrl } = Astro.props
+const canonicalURL = Astro.site ? new URL(Astro.url.pathname, Astro.site) : null
+const markdownAbsoluteUrl = (markdownUrl && Astro.site) ? new URL(markdownUrl, Astro.site) : null
 ---
 
 <!doctype html>
@@ -25,6 +27,7 @@ const { title, description, pageType, particles = true, markdownUrl } = Astro.pr
         <meta charset='UTF-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1, viewport-fit=cover' />
         <link rel='icon' type='image/svg+xml' href={logoImg.src} />
+        {canonicalURL && <link rel='canonical' href={canonicalURL.href} />}
         <meta name='generator' content={Astro.generator} />
         <title>{title ? `${title} - ${SITE_TITLE}` : SITE_TITLE}</title>
         <meta property='og:site_name' content={SITE_TITLE} />
@@ -36,7 +39,15 @@ const { title, description, pageType, particles = true, markdownUrl } = Astro.pr
             )
         }
         {pageType && <meta property='og:type' content={pageType} />}
-        {markdownUrl && <link rel='alternate' type='text/markdown' href={markdownUrl} />}
+        {
+            markdownAbsoluteUrl && (
+                <link
+                    rel='alternate'
+                    type='text/markdown'
+                    href={markdownAbsoluteUrl.href}
+                />
+            )
+        }
         <script is:inline>
             const getTheme = () => {
                 if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
