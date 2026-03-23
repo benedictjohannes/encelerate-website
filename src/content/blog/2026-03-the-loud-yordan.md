@@ -1,6 +1,6 @@
 ---
-title: "For the Shouting Neighboring Gamer: An Audiophile's Pavlovian Payback"
-description: An audiophile system can kick back too
+title: "To the Loud Gamer Next Door: An Audiophile's Pavlovian Payback"
+description: "An audiophile's system can kick back at 31Hz"
 pubDate: '2026-03-21'
 private: false
 ---
