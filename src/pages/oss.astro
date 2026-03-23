@@ -16,6 +16,7 @@ try {
 }
 
 async function getLatestCommit(repoUrl: string) {
+  if (!repoUrl.startsWith('https://github.com/')) return null;
   const repoPath = repoUrl.replace('https://github.com/', '');
   const url = `https://api.github.com/repos/${repoPath}/commits?per_page=1`;
   
@@ -43,17 +44,23 @@ async function getLatestCommit(repoUrl: string) {
 
 // Enrichment Pipeline
 const enrichedProjects = await Promise.all(
-  ossRepoList.map(async (project) => {
+  ossRepoList.map(async (project, index) => {
     const lastCommit = await getLatestCommit(project.repo);
-    return { ...project, lastCommit };
+    return { ...project, lastCommit, originalIndex: index };
   })
 );
 
 // Sort by last commit date (descending)
 enrichedProjects.sort((a, b) => {
-  const dateA = a.lastCommit ? new Date(a.lastCommit).getTime() : 0;
-  const dateB = b.lastCommit ? new Date(b.lastCommit).getTime() : 0;
-  return dateB - dateA;
+  const timeA = a.lastCommit ? new Date(a.lastCommit).getTime() : 0;
+  const timeB = b.lastCommit ? new Date(b.lastCommit).getTime() : 0;
+
+  if (timeA !== timeB) {
+    return timeB - timeA;
+  }
+  
+  // Stable sort: fall back to original array position
+  return a.originalIndex - b.originalIndex;
 });
 
 const title = "Open Source Software";
