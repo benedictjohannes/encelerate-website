@@ -1,0 +1,16 @@
+---
+import Layout from './Layout.astro';
+const { frontmatter } = Astro.props;
+---
+
+<Layout title={frontmatter.title} description={frontmatter.description}>
+    <div class="max-w-4xl mx-auto py-16 px-6 lg:px-8">
+        <article class="prose dark:prose-invert max-w-none">
+            <slot />
+        </article>
+        
+        <div class="mt-12 pt-8 border-t border-black/10 dark:border-white/10">
+            <a href="/" class="text-amber-600 dark:text-amber-400 hover:underline">&larr; Back to Home</a>
+        </div>
+    </div>
+</Layout>
