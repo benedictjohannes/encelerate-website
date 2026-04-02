@@ -45,7 +45,20 @@ export const ossRepoList: OSSProject[] = [
     name: "Quadlets Control Center",
     language: "Bash",
     repo: "https://github.com/benedictjohannes/quadlets-control-center",
-    description: "A unified **\"Control Centre\"** tempplate to build your own orchestration with ultimate ease. Ditch the need to remember which command to run or which port to open anymore. It separates application code from deployment-specific \"glue\" using Podman Quadlets, Caddy, and Cloudflare Tunnels, providing a version-controlled repository."
+    description: "A unified **\"Control Centre\"** template to build your own orchestration with ultimate ease. Ditch the need to remember which command to run or which port to open anymore. It separates application code from deployment-specific \"glue\" using Podman Quadlets, Caddy, and Cloudflare Tunnels, providing a version-controlled repository."
+  },
+  {
+    name: "ComplianceProbe",
+    language: "Go",
+    repo: "https://github.com/benedictjohannes/ComplianceProbe",
+    description: "A cross-platform security compliance reporting agent. It executes automated checks defined in YAML \"playbooks\" to verify system integrity, security configurations, and hardware state. Features embedded JavaScript logic, weighted scoring, and multi-platform support (Linux, Windows, macOS).",
+    shields: [
+      {
+        label: "Build Status",
+        img: "https://img.shields.io/github/actions/workflow/status/benedictjohannes/ComplianceProbe/release.yml",
+        url: "https://github.com/benedictjohannes/ComplianceProbe/actions"
+      }
+    ]
   },
   {
     name: "env-config-parse",
@@ -97,7 +110,7 @@ export const ossRepoList: OSSProject[] = [
     language: "Go",
     repo: "https://github.com/benedictjohannes/gracefulcontext",
     description: "An extension of Go's `context.Context` that includes built-in support for cleanup orchestration and timeouts. It simplifies the management of graceful shutdowns by allowing services to register cleanup functions that are triggered upon context cancellation."
-  }
+  },
 ];
 
 export function getLanguageLogo(language: keyof typeof languages): string {
