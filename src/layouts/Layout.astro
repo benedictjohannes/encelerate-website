@@ -6,6 +6,7 @@ import '@fontsource-variable/reddit-sans/wght-italic.css'
 import '@fontsource/noto-sans'
 import TsParticleBackground from '../components/TsParticleBackground.astro'
 import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
 import { SITE_TITLE } from '../consts'
 import logoImg from '../assets/logo/encelerateLogoSq.svg'
 
@@ -70,5 +71,6 @@ const markdownAbsoluteUrl = (markdownUrl && Astro.site) ? new URL(markdownUrl, A
         <main>
             <slot />
         </main>
+        <Footer />
     </body>
 </html>
