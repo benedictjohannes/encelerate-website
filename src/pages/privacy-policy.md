@@ -37,8 +37,8 @@ We **do not sell, trade, or otherwise transfer** your personally identifiable in
 
 ## 4. Data Control
 
-You have full control over your information. At any point, you can request a copy of your data or ask us to permanently delete your account and comments by emailing **legal@encelerate.com**.
+You have full control over your information. At any point, you can request a copy of your data or ask us to permanently delete your account and comments by emailing **welcome@encelerate.com**.
 
 ## 5. Contact Us
 
-If you have any questions regarding this Privacy Policy or wish to exercise your data control, please contact us at **legal@encelerate.com**.
+If you have any questions regarding this Privacy Policy or wish to exercise your data control, please contact us at **welcome@encelerate.com**.

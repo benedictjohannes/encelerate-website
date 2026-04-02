@@ -44,4 +44,4 @@ We may update these Terms from time to time. We will notify users of any signifi
 
 ## 8. Contact Us
 
-For any questions about these Terms, please contact us at **legal@encelerate.com**.
+For any questions about these Terms, please contact us at **welcome@encelerate.com**.
