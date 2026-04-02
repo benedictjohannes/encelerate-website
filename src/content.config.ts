@@ -16,4 +16,21 @@ const blog = defineCollection({
         }),
 })
 
-export const collections = { blog }
+const oss = defineCollection({
+    // Load Markdown files in the `src/content/oss/` directory.
+    loader: glob({ base: './src/content/oss', pattern: '**/*.md' }),
+    // Type-check frontmatter using a schema
+    schema: z.object({
+        name: z.string(),
+        language: z.enum(['Javascript', 'Rust', 'TypeScript', 'Bash', 'Go']),
+        repo: z.string().url(),
+        shields: z.array(z.object({
+            label: z.string(),
+            img: z.string(),
+            url: z.string().optional(),
+        })).optional(),
+        repoShortText: z.string().optional(),
+    }),
+})
+
+export const collections = { blog, oss }

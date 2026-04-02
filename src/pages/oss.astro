@@ -1,17 +1,28 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { ossRepoList, getLanguageLogo } from '../data/oss/ossRepoList';
+import { getCollection, render } from 'astro:content';
 
 export const prerender = true;
 
-// Fetch GitHub token from environment (build time) or Cloudflare binding (if hybrid, though this page is static)
+// Define languages and their logos (moved from ossRepoList.ts)
+const languages = {
+  Javascript: 'https://img.shields.io/badge/language-JavaScript-F7DF1E?&logo=javascript&logoColor=white',
+  Rust: 'https://img.shields.io/badge/language-Rust-dea584?&logo=rust&logoColor=white',
+  TypeScript: 'https://img.shields.io/badge/language-TypeScript-3178C6?&logo=typescript&logoColor=white',
+  Bash: 'https://img.shields.io/badge/language-Bash-4EAA25?&logo=gnubash&logoColor=white',
+  Go: 'https://img.shields.io/badge/language-Go-00ADD8?&logo=go&logoColor=white',
+}
+
+function getLanguageLogo(language: keyof typeof languages): string {
+  return languages[language];
+}
+
+// Fetch GitHub token from environment (build time) or Cloudflare binding
 let githubToken: string | undefined;
 try {
-  // This import will only succeed in a Cloudflare Workers environment
   const workers = await import('cloudflare:workers');
   githubToken = (workers.env as any).githubPublicRepoReadOnlyAccessBenedictJohannes;
 } catch (e) {
-  // This will be used during build time (Node.js)
   githubToken = process.env.githubPublicRepoReadOnlyAccessBenedictJohannes;
 }
 
@@ -42,11 +53,18 @@ async function getLatestCommit(repoUrl: string) {
   }
 }
 
-// Enrichment Pipeline
+// Fetch and Enrich OSS Projects from Content Collection
+const ossEntries = await getCollection('oss');
 const enrichedProjects = await Promise.all(
-  ossRepoList.map(async (project, index) => {
-    const lastCommit = await getLatestCommit(project.repo);
-    return { ...project, lastCommit, originalIndex: index };
+  ossEntries.map(async (entry) => {
+    const lastCommit = await getLatestCommit(entry.data.repo);
+    const { Content } = await render(entry);
+    return { 
+      ...entry.data, 
+      lastCommit, 
+      Content,
+      id: entry.id // to use for stable sort
+    };
   })
 );
 
@@ -59,8 +77,8 @@ enrichedProjects.sort((a, b) => {
     return timeB - timeA;
   }
   
-  // Stable sort: fall back to original array position
-  return a.originalIndex - b.originalIndex;
+  // Stable sort: fall back to project ID
+  return a.id.localeCompare(b.id);
 });
 
 const title = "Open Source Software";
@@ -148,10 +166,9 @@ const description = "A collection of open source tools and projects I've built a
                 </div>
               </div>
             </div>
-            <p 
-              class="text-zinc-600 dark:text-zinc-400 leading-relaxed group-hover:text-zinc-900 dark:group-hover:text-zinc-300 group-hover:translate-x-0.5 transition-all duration-300" 
-              set:html={project.description.replace(/\*\*(.*?)\*\*/g, '<strong class="text-zinc-900 dark:text-zinc-200 font-semibold">$1</strong>')}
-            />
+            <div class="oss-description text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed group-hover:text-zinc-900 dark:group-hover:text-zinc-300 group-hover:translate-x-0.5 transition-all duration-300">
+               <project.Content />
+            </div>
           </div>
         </div>
       ))}
@@ -160,6 +177,8 @@ const description = "A collection of open source tools and projects I've built a
 </Layout>
 
 <style>
+  @reference "../styles/global.css";
+
   .animate-fade-in {
     animation: fadeIn 0.8s ease-out forwards;
   }
@@ -179,5 +198,18 @@ const description = "A collection of open source tools and projects I've built a
   .grid > div {
     opacity: 0;
     animation: fadeIn 0.8s ease-out forwards;
+  }
+
+  /* Markdown styling for descriptions */
+  .oss-description :global(strong) {
+    @apply text-zinc-900 dark:text-zinc-200 font-semibold;
+  }
+
+  .oss-description :global(code) {
+    @apply font-mono text-zinc-900 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800/80 px-1 py-0.5 rounded-md text-[0.9em];
+  }
+
+  .oss-description :global(p) {
+    @apply mb-0;
   }
 </style>
