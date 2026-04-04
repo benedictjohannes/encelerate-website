@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { actions } from "astro:actions";
 	import { authClient } from "../../lib/auth.client";
-
+	const MIN_COMMENT_LENGTH = 3;
+	const MAX_COMMENT_LENGTH = 2000;
 	let { 
 		slug, 
 		replyToId = null, 
@@ -96,7 +97,7 @@
 
 				<button
 					type="submit"
-					disabled={isSubmitting || !content.trim() || content.length > 2000}
+					disabled={isSubmitting || !content.trim() || content.length < MIN_COMMENT_LENGTH || content.length > MAX_COMMENT_LENGTH}
 					class="relative overflow-hidden bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 px-8 py-3 rounded-none font-black text-xs uppercase tracking-[0.15em] shadow-lg shadow-black/10 dark:shadow-amber-500/10 hover:shadow-xl hover:scale-102 active:scale-98 disabled:opacity-50 disabled:grayscale disabled:scale-100 transition-all flex items-center gap-2 group"
 				>
 					{#if isSubmitting}

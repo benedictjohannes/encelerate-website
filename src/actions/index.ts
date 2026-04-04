@@ -8,6 +8,9 @@ import { getAuth } from '../lib/auth';
 import { sendEmail } from '../lib/email';
 import { generateUnsubscribeToken } from '../lib/notifications';
 
+const MIN_COMMENT_LENGTH = 3;
+const MAX_COMMENT_LENGTH = 2000;
+
 export const server = {
     getComments: defineAction({
         input: z.object({
@@ -75,7 +78,7 @@ export const server = {
     postComment: defineAction({
         input: z.object({
             slug: z.string(),
-            content: z.string().min(3).max(2000),
+            content: z.string().min(MIN_COMMENT_LENGTH).max(MAX_COMMENT_LENGTH),
             replyId: z.string().optional().nullable(), // The direct target
         }),
         handler: async (input, context) => {
