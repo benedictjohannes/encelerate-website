@@ -10,6 +10,7 @@ import expressiveCode from "astro-expressive-code";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import cloudflare from "@astrojs/cloudflare";
+import svelte from "@astrojs/svelte";
 
 // Scan for private blog posts during build time to exclude them from the sitemap
 const blogDir = './src/content/blog';
@@ -31,6 +32,7 @@ if (fs.existsSync(blogDir)) {
 
 // https://astro.build/config
 export default defineConfig({
+	output: 'server',
 	site: "https://encelerate.com",
 	adapter: cloudflare(),
 	integrations: [
@@ -47,6 +49,7 @@ export default defineConfig({
 				return !isPrivate;
 			}
 		}),
+		svelte(),
 	],
 	markdown: {
 		remarkPlugins: [remarkMath],
@@ -63,5 +66,11 @@ export default defineConfig({
 	},
 	vite: {
 		plugins: [tailwindcss()],
+		optimizeDeps: {
+			exclude: ['aws4fetch', 'better-auth']
+		},
+		ssr: {
+			external: ['aws4fetch', 'better-auth']
+		}
 	},
 });

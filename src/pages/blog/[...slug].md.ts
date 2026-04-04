@@ -48,3 +48,5 @@ export const GET = async ({ props }: { props: { post: any } }) => {
         },
     })
 }
+
+export const prerender = true;
