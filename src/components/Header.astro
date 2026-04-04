@@ -65,19 +65,19 @@ import logoImg from '../assets/logo/encelerateLogo.svg';
 
   // Shrink header on scroll (Desktop only)
   const handleScroll = () => {
-    const isScrolled = window.scrollY > window.innerHeight / 2;
+    const isScrolled = window.scrollY > 20;
     const isDesktop = window.innerWidth >= 768;
 
     if (isScrolled && isDesktop) {
-      header?.classList.remove('h-[60px]', 'bg-white/80', 'dark:bg-neutral-900/80', 'backdrop-blur-md');
-      header?.classList.add('h-[40px]', 'bg-white', 'dark:bg-neutral-900', 'shadow-lg');
-      logo?.classList.remove('text-xl');
-      logo?.classList.add('text-lg');
+      header?.classList.remove('h-15', 'bg-white/80', 'dark:bg-neutral-900/80', 'backdrop-blur-md');
+      header?.classList.add('h-10', 'bg-white', 'dark:bg-neutral-900', 'shadow-lg');
+      logo?.classList.remove('h-8');
+      logo?.classList.add('h-6');
     } else {
-      header?.classList.remove('h-[40px]', 'bg-white', 'dark:bg-neutral-900', 'shadow-lg');
-      header?.classList.add('h-[60px]', 'bg-white/80', 'dark:bg-neutral-900/80', 'backdrop-blur-md');
-      logo?.classList.remove('text-lg');
-      logo?.classList.add('text-xl');
+      header?.classList.remove('h-10', 'bg-white', 'dark:bg-neutral-900', 'shadow-lg');
+      header?.classList.add('h-15', 'bg-white/80', 'dark:bg-neutral-900/80', 'backdrop-blur-md');
+      logo?.classList.remove('h-6');
+      logo?.classList.add('h-8');
     }
   };
 
@@ -132,6 +132,7 @@ import logoImg from '../assets/logo/encelerateLogo.svg';
 
   // Initial set
   setTheme(getTheme() || 'dark');
+  handleScroll();
 
   themeToggle?.addEventListener('click', () => {
     const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
