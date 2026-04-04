@@ -29,13 +29,47 @@
 			emailNotificationsEnabled: emailEnabled,
 			notificationRateLimitHours: finalRateLimit,
 		});
+		await $session.refetch?.();
 	}
 
 	async function signIn() {
-		await authClient.signIn.social({ 
+		const { data, error } = await authClient.signIn.social({ 
 			provider: "google",
-			callbackURL: window.location.href 
+			callbackURL: "/auth/callback",
+			disableRedirect: true
 		});
+
+		if (error) {
+			console.error("Sign-in error:", error);
+			return;
+		}
+
+		if (data?.url) {
+			const popup = window.open(
+				data.url,
+				"better_auth_popup",
+				"width=480,height=640"
+			);
+
+			const handleMessage = async (event: MessageEvent) => {
+				if (event.origin !== window.location.origin) return;
+
+				if (event.data === "better-auth-callback-success") {
+					window.removeEventListener("message", handleMessage);
+					popup?.close();
+					await $session.refetch?.();
+				}
+			};
+
+			window.addEventListener("message", handleMessage);
+
+			const checkPopup = setInterval(() => {
+				if (popup?.closed) {
+					clearInterval(checkPopup);
+					window.removeEventListener("message", handleMessage);
+				}
+			}, 1000);
+		}
 	}
 
 	async function signOut() {

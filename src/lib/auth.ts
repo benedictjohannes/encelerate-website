@@ -20,6 +20,7 @@ export const getAuth = (db: D1Database, env: Env) => {
 				clientSecret: env.authGoogleClientSecret,
 			},
 		},
+		plugins: [],
 		user: {
 			additionalFields: {
 				role: { type: "string" },
