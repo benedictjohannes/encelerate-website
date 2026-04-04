@@ -1,26 +1,49 @@
 <script lang="ts">
 	import { actions } from "astro:actions";
 	import { authClient } from "../../lib/auth.client";
+	import CommentTextArea from "./CommentTextArea.svelte";
+
 	const MIN_COMMENT_LENGTH = 3;
 	const MAX_COMMENT_LENGTH = 2000;
+
 	let { 
 		slug, 
 		replyToId = null, 
+		replyToUsername = null,
+		threadUsers = [],
 		onSubmitted = (newComment: any) => {}, 
 		onInteraction = () => {},
 		autofocus = false
 	}: {
 		slug: string,
 		replyToId?: string | null,
+		replyToUsername?: string | null,
+		threadUsers?: any[],
 		onSubmitted?: (newComment: any) => void,
 		onInteraction?: () => void,
 		autofocus?: boolean
 	} = $props();
-	
+
 	let session = authClient.useSession();
 	let content = $state("");
 	let isSubmitting = $state(false);
 	let error = $state("");
+
+	// Prefill mention when replying
+	$effect(() => {
+		if (replyToId && replyToUsername && content === "" && $session.data?.user) {
+			const targetUser = threadUsers.find(u => u.name === replyToUsername);
+            const currentUserId = $session.data.user.id;
+
+			if (targetUser && targetUser.id !== currentUserId) {
+				content = `<mention userid="${targetUser.id}" username="${targetUser.name}" /> `;
+			} else if (!targetUser) {
+				content = `@${replyToUsername} `;
+			}
+		}
+	});
+
+    const currentUserId = $derived($session.data?.user?.id);
 
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
@@ -48,25 +71,22 @@
 			isSubmitting = false;
 		}
 	}
-	function focusOnMount(node: HTMLTextAreaElement) {
-		if (autofocus) {
-			node.focus();
-		}
-	}
 </script>
 
 <div class="comment-form-container">
 	{#if $session.data}
 		<form onsubmit={handleSubmit} class="group space-y-4">
 			<div class="relative">
-				<textarea
+				<CommentTextArea
 					bind:value={content}
-					onfocus={onInteraction}
-					use:focusOnMount
+					{threadUsers}
+					{onInteraction}
+					{autofocus}
+					{currentUserId}
+					mentionsEnabled={!!replyToId}
 					placeholder={replyToId ? "Write a thoughtful reply..." : "Share your thoughts on this article..."}
-					class="w-full min-h-24 p-4 rounded-none bg-stone-50 dark:bg-stone-950 border border-black/5 dark:border-white/5 focus:border-amber-500 dark:focus:border-amber-500/50 outline-none transition-all resize-none text-[0.95rem] font-medium leading-relaxed placeholder:text-stone-400 dark:placeholder:text-stone-600 block shadow-inner"
 					disabled={isSubmitting}
-				></textarea>
+				/>
 				
 				<div class="absolute bottom-4 right-6 flex items-center gap-4">
 					{#if content.length > 1500}

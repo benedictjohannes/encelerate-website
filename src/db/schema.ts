@@ -85,6 +85,8 @@ export const comments = sqliteTable('comments', {
     postThreadIdx: index('post_thread_idx').on(table.postId, table.parentId, table.createdAt),
 }));
 
+
+
 export const commentsRelations = relations(comments, ({ one, many }) => ({
 	user: one(user, {
 		fields: [comments.userId],

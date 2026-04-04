@@ -9,6 +9,7 @@
 		comment, 
 		slug, 
 		highlightedId,
+		threadUsers = [],
 		onCommentAdded = (c: any) => {}, 
 		onCommentDeleted = (id: string) => {},
 		onScrollToComment = (id: string) => {},
@@ -17,6 +18,7 @@
 		comment: any,
 		slug: string,
 		highlightedId: string | null,
+		threadUsers?: any[],
 		onCommentAdded?: (c: any) => void,
 		onCommentDeleted?: (id: string) => void,
 		onScrollToComment?: (id: string) => void,
@@ -44,8 +46,25 @@
 			return `<div class="italic text-stone-400 font-mono text-[11px] py-1">[ Comment Deleted on ${dateStr} ${timeStr} ]</div>`;
 		}
 		try {
-			const rawHtml = marked.parse(comment.content || "", { renderer });
-			return DOMPurify.sanitize(rawHtml as string);
+			// First parse markdown
+			let rawHtml = marked.parse(comment.content || "", { renderer }) as string;
+			
+			// Then replace deterministic mentions with styled Spans.
+			// Robust regex that handles attribute order, case, and escaping
+			const mentionRegex = /(?:<|&lt;)mention\s+([^>&]+?)\s*\/?(?:>|&gt;)/gi;
+			
+			rawHtml = rawHtml.replace(mentionRegex, (match, attrs) => {
+				const idMatch = attrs.match(/userid=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i) || attrs.match(/userId=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i);
+				const nameMatch = attrs.match(/username=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i) || attrs.match(/userName=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i);
+				
+				if (idMatch && nameMatch) {
+					const displayName = nameMatch[1].replace(/&amp;/g, '&');
+					return `<span class="mention font-extrabold text-amber-600 dark:text-amber-400 group/mention cursor-default" data-user-id="${idMatch[1]}">@${displayName}</span>`;
+				}
+				return match;
+			});
+
+			return DOMPurify.sanitize(rawHtml);
 		} catch (e) {
 			console.error("Markdown error:", e);
 			return comment.content || "";
@@ -156,7 +175,7 @@
 
 		{#if showReplyForm}
 			<div class="mt-4 p-4 bg-stone-50 dark:bg-black/20 rounded-none border border-black/5 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
-				<CommentForm {slug} replyToId={comment.id} onSubmitted={handleReply} onInteraction={clearHighlight} autofocus={true} />
+				<CommentForm {slug} replyToId={comment.id} replyToUsername={comment.user.name} {threadUsers} onSubmitted={handleReply} onInteraction={clearHighlight} autofocus={true} />
 			</div>
 		{/if}
 	</div>

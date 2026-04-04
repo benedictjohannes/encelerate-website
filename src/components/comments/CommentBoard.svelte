@@ -67,8 +67,6 @@
 
 		if (newComment.parentId) {
 			// Find root parent and add to its replies (Action already groups them under parentId)
-			// Our action logic: dbParentId = targetComment.parentId ?? targetComment.id;
-			// So we just need to find the comment with id === newComment.parentId
 			const updateTree = (list: any[]) => {
 				for (let c of list) {
 					if (c.id === newComment.parentId) {
@@ -117,7 +115,7 @@
 	<div class="space-y-4">
 		<!-- Main Post Form -->
 		<div class="bg-white dark:bg-stone-950 p-1 sm:p-2 rounded-none border border-black/5 dark:border-white/5 shadow-2xl shadow-black/5 dark:shadow-none">
-			<CommentForm {slug} onSubmitted={handleCommentAdded} onInteraction={clearHighlight} />
+			<CommentForm {slug} threadUsers={[]} onSubmitted={handleCommentAdded} onInteraction={clearHighlight} />
 		</div>
 
 		<!-- List -->

@@ -11,6 +11,25 @@ import { generateUnsubscribeToken } from '../lib/notifications';
 const MIN_COMMENT_LENGTH = 3;
 const MAX_COMMENT_LENGTH = 2000;
 
+/**
+ * Robustly renders deterministic <mention> tags into @username for text/html emails.
+ * Matches logic in CommentItem.svelte but simplified for SSR.
+ */
+function renderMentionsForEmail(content: string): string {
+    const mentionRegex = /<mention\s+([^>]*?)\s*\/?>(?:.*?<\/mention>)?/gi;
+    return content.replace(mentionRegex, (match, attrs) => {
+        // Match name from either username or userName, supporting both " and &quot;
+        const nameMatch = attrs.match(/username=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i) || 
+                          attrs.match(/userName=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i);
+        
+        if (nameMatch) {
+            const displayName = nameMatch[1].replace(/&amp;/g, '&');
+            return `@${displayName}`;
+        }
+        return match;
+    });
+}
+
 export const server = {
     getComments: defineAction({
         input: z.object({
@@ -105,10 +124,13 @@ export const server = {
                 postRow = results[0];
             }
 
-            // 2. Resolve parentId (Thread Root) and replyId (Direct Target)
+            const commentId = crypto.randomUUID();
             let dbParentId: string | null = null;
             let dbReplyId: string | null = null;
             let targetComment = null;
+
+            let threadUsers: any[] = [];
+            let commentContent = input.content;
 
             if (input.replyId) {
                 targetComment = await db.query.comments.findFirst({
@@ -123,17 +145,154 @@ export const server = {
                 }
 
                 dbReplyId = targetComment.id;
-                // If the target is already a reply, use its parentId. Otherwise, the target is the root.
                 dbParentId = targetComment.parentId ?? targetComment.id;
+
+                // Get all users in this comment thread
+                const threadComments = await db.query.comments.findMany({
+                    where: eq(schema.comments.parentId, dbParentId),
+                    with: {
+                        user: {
+                            columns: { 
+                                id: true, 
+                                name: true, 
+                                email: true, 
+                                emailNotificationsEnabled: true, 
+                                lastNotifiedAt: true, 
+                                notificationRateLimitHours: true 
+                            }
+                        }
+                    }
+                });
+
+                const userSet = new Map();
+                threadComments.forEach(c => {
+                    if (c.user && !userSet.has(c.user.id)) {
+                        userSet.set(c.user.id, c.user);
+                    }
+                });
+                // Ensure target comment user and root user are included (if not already)
+                if (targetComment.user) userSet.set(targetComment.userId, targetComment.user);
+                
+                // If this is a nested reply, also include the top-level root author
+                if (targetComment.parentId) {
+                    const topLevelComment = await db.query.comments.findFirst({
+                        where: eq(schema.comments.id, targetComment.parentId),
+                        with: {
+                            user: {
+                                columns: { 
+                                    id: true, 
+                                    name: true, 
+                                    email: true, 
+                                    emailNotificationsEnabled: true, 
+                                    lastNotifiedAt: true, 
+                                    notificationRateLimitHours: true 
+                                }
+                            }
+                        }
+                    });
+                    if (topLevelComment?.user) {
+                        userSet.set(topLevelComment.userId, topLevelComment.user);
+                    }
+                }
+                
+                threadUsers = Array.from(userSet.values());
+
+                // Auto prepend mention of target user if not manually mentioned
+                const targetUserId = targetComment.userId;
+                const targetUserName = targetComment.user.name;
+                
+                // Use a more robust check for existing mentions (case-insensitive, attribute order agnostic)
+                const isAlreadyMentioned = new RegExp(`<mention[^>]+userid="${targetUserId}"`, 'i').test(commentContent);
+                
+                if (!isAlreadyMentioned) {
+                    const targetMentionTag = `<mention userid="${targetUserId}" username="${targetUserName}" />`;
+                    commentContent = `${targetMentionTag} ${commentContent}`.trim();
+                }
+
+                // Parse deterministic mentions: <mention userid="ID" username="NAME" />
+                // Support both short <mention ... /> and long <mention ...>...</mention> tags, case-insensitive
+                const mentionRegex = /<mention[^>]+userid="([^"]+)"/gi;
+                const matches = [...commentContent.matchAll(mentionRegex)];
+                
+                const validMentionIds: string[] = [];
+                const threadUserIds = new Set(threadUsers.map(u => u.id));
+
+                for (const match of matches) {
+                    const userId = match[1];
+                    if (!threadUserIds.has(userId)) {
+                        throw new Error(`User in mention tag is not part of this thread.`);
+                    }
+                    if (!validMentionIds.includes(userId)) {
+                        validMentionIds.push(userId);
+                    }
+                }
+                if (validMentionIds.length > 0) {
+                    const now = new Date();
+                    // Send mention notifications (background)
+                    for (const userId of validMentionIds) {
+                        if (userId === session.user.id) continue;
+                        if (targetComment && userId === targetComment.userId) continue;
+
+                        const mentionedUser = threadUsers.find(u => u.id === userId);
+                        if (!mentionedUser?.emailNotificationsEnabled) continue;
+
+                        const lastNotifiedAt = mentionedUser.lastNotifiedAt ? new Date(mentionedUser.lastNotifiedAt) : null;
+                        const rateLimitMs = mentionedUser.notificationRateLimitHours * 60 * 60 * 1000;
+                        const isWithinRateLimit = !lastNotifiedAt || rateLimitMs === 0 || (now.getTime() - lastNotifiedAt.getTime() > rateLimitMs);
+                        
+                        if (!isWithinRateLimit) continue;
+
+                        const sendMentionNotification = async () => {
+                            try {
+                                const unsubscribeToken = await generateUnsubscribeToken(mentionedUser.id, env.betterAuthSecret);
+                                const unsubscribeUrl = `https://encelerate.com/api/notifications/unsubscribe?uid=${mentionedUser.id}&token=${unsubscribeToken}`;
+
+                                await sendEmail(env, {
+                                    to: mentionedUser.email,
+                                    subject: `You were mentioned in a comment on Encelerate: ${input.slug}`,
+                                    html: `
+                                        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                                            <h3>Hello ${mentionedUser.name},</h3>
+                                            <p><b>${session.user.name}</b> mentioned you in a comment on <b>${input.slug}</b>:</p>
+                                             <div style="border-left: 4px solid #28a745; padding: 12px; font-style: italic; background: #f8f9fa; border-radius: 4px;">
+                                                ${renderMentionsForEmail(commentContent)}
+                                             </div>
+                                            <p style="margin-top: 24px;">
+                                                <a href="https://encelerate.com/blog/${input.slug}?highlightCommentId=${commentId}" 
+                                                   style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                                                   View Comment
+                                                </a>
+                                            </p>
+                                            <hr style="margin-top: 40px; border: 0; border-top: 1px solid #eee;">
+                                            <p style="font-size: 11px; color: #888; margin-top: 32px; border-top: 1px solid #eee; padding-top: 16px;">
+                                                You're receiving this because you've enabled mention notifications for your comments.
+                                                <br>
+                                                <a href="${unsubscribeUrl}" style="color: #28a745; text-decoration: none;">Unsubscribe from all notifications</a>
+                                            </p>
+                                        </div>
+                                    `
+                                });
+                                // Update lastNotifiedAt
+                                await db.update(schema.user)
+                                    .set({ lastNotifiedAt: now })
+                                    .where(eq(schema.user.id, mentionedUser.id));
+                            } catch (e) {
+                                console.error('Failed to send mention notification:', e);
+                            }
+                        };
+
+                        const ctx = context.locals.cfContext || (context.locals as any).runtime?.ctx;
+                        if (ctx) ctx.waitUntil(sendMentionNotification());
+                    }
+                }
             }
 
             // 3. Insert new comment
-            const commentId = crypto.randomUUID();
             const [newComment] = await db.insert(schema.comments).values({
                 id: commentId,
                 userId: session.user.id,
                 postId: postRow.id,
-                content: input.content,
+                content: commentContent,
                 parentId: dbParentId,
                 replyId: dbReplyId,
                 createdAt: new Date(),
@@ -164,9 +323,9 @@ export const server = {
                                     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                                         <h3>Hello ${targetUser.name},</h3>
                                         <p><b>${session.user.name}</b> replied to your comment on <b>${input.slug}</b>:</p>
-                                        <div style="border-left: 4px solid #007bff; padding: 12px; font-style: italic; background: #f8f9fa; border-radius: 4px;">
-                                            ${input.content}
-                                        </div>
+                                         <div style="border-left: 4px solid #007bff; padding: 12px; font-style: italic; background: #f8f9fa; border-radius: 4px;">
+                                            ${renderMentionsForEmail(commentContent)}
+                                         </div>
                                         <p style="margin-top: 24px;">
                                             <a href="https://encelerate.com/blog/${input.slug}?highlightCommentId=${commentId}" 
                                                style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
