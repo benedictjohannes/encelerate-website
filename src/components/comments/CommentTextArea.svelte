@@ -101,8 +101,7 @@
 			element: editorElement!,
 			extensions: [
 				StarterKit.configure({
-					bold: false,
-					italic: false,
+                    heading: false,
 				}),
 				Placeholder.configure({
 					placeholder,
@@ -275,7 +274,7 @@
 	<div 
 		bind:this={editorElement}
 		onfocus={onInteraction}
-		class="{className} w-full min-h-24 p-4 rounded-none bg-stone-50 dark:bg-stone-950 border border-black/5 dark:border-white/5 focus-within:border-amber-500/50 outline-none transition-all text-[0.95rem] font-medium leading-relaxed shadow-inner tiptap-editor"
+		class="{className} w-full min-h-24 p-4 rounded-none bg-stone-50 dark:bg-stone-950 border border-black/5 dark:border-white/5 focus-within:border-amber-500/50 outline-none transition-all text-[0.95rem] font-mono leading-relaxed shadow-inner tiptap-editor"
 	></div>
 
 	{#if showMentionsPool && mentionCandidates.length > 0}
@@ -311,7 +310,65 @@
 		outline: none;
 		min-height: 5rem;
 		white-space: pre-wrap;
+        font-family: inherit;
 	}
+
+    :global(.tiptap-editor .ProseMirror strong) {
+        font-weight: 800;
+        color: #000;
+    }
+    :global(.dark .tiptap-editor .ProseMirror strong) {
+        color: #fff;
+    }
+
+    :global(.tiptap-editor .ProseMirror em) {
+        font-style: italic;
+    }
+
+    :global(.tiptap-editor .ProseMirror code) {
+        background: rgba(0,0,0,0.05);
+        padding: 0.2em 0.4em;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+    :global(.dark .tiptap-editor .ProseMirror code) {
+        background: rgba(255,255,255,0.1);
+    }
+
+    :global(.tiptap-editor .ProseMirror ul) {
+        list-style-type: disc !important;
+        padding-left: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    :global(.tiptap-editor .ProseMirror ol) {
+        list-style-type: decimal !important;
+        padding-left: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    :global(.tiptap-editor .ProseMirror li) {
+        margin-bottom: 0.25rem;
+    }
+
+    :global(.tiptap-editor .ProseMirror pre) {
+        background: #1c1917;
+        color: #f5f5f4;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        font-family: inherit;
+        font-size: 0.9em;
+    }
+
+    :global(.tiptap-editor .ProseMirror blockquote) {
+        border-left: 4px solid #f59e0b;
+        padding-left: 1rem;
+        margin: 1rem 0;
+        font-style: italic;
+        opacity: 0.8;
+    }
 
 	:global(.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before) {
 		content: attr(data-placeholder);
