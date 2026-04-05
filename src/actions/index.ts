@@ -295,7 +295,7 @@ export const server = {
 
                                 await sendEmail(env, {
                                     to: mentionedUser.email,
-                                    subject: `You were mentioned in a comment on Encelerate: ${input.slug}`,
+                                    subject: `You were mentioned in a comment on ${input.slug}`,
                                     html: `
                                         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                                             <h3>Hello ${mentionedUser.name},</h3>
@@ -364,7 +364,7 @@ export const server = {
 
                             await sendEmail(env, {
                                 to: targetUser.email,
-                                subject: `New reply on Encelerate: ${input.slug}`,
+                                subject: `New reply on your comment on ${input.slug}`,
                                 html: `
                                     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                                         <h3>Hello ${targetUser.name},</h3>

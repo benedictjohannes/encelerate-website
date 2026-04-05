@@ -4,6 +4,7 @@ export type SendEmailOptions = {
     to: string;
     subject: string;
     html: string;
+    from?: string;
 };
 
 /**
@@ -21,9 +22,13 @@ export async function sendEmail(env: {
         region: 'ap-southeast-1', 
     });
 
+    const fromStr = options.from 
+        ? (options.from.includes('<') ? options.from : `${options.from} <${env.awsSesSenderEmail}>`)
+        : `encelerate.com blog <${env.awsSesSenderEmail}>`;
+
     const body = new URLSearchParams({
         'Action': 'SendEmail',
-        'Source': env.awsSesSenderEmail,
+        'Source': fromStr,
         'Destination.ToAddresses.member.1': options.to,
         'Message.Subject.Data': options.subject,
         'Message.Body.Html.Data': options.html,
