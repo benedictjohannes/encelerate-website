@@ -1,0 +1,35 @@
+<div class='star-grid-container'></div>
+
+<style>
+    .star-grid-container {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+
+        /* The Star Flare Pattern (64px grid) */
+        /* Width: 15% (9.6px) / Height: 25% (16px) */
+        background-size: 64px 64px;
+        background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M32 24Q32 32 27.2 32Q32 32 32 40Q32 32 36.8 32Q32 32 32 24Z' fill='rgba(96, 84, 51, 0.15)'/%3E%3C/svg%3E");
+        background-position: center;
+
+        /* "Counter-Balance" mask: Start from the bottom-right, opposite the top-left background glow */
+        mask-image: radial-gradient(
+            at 100% 100%, 
+            black 0%, 
+            rgba(0, 0, 0, 0.4) 30%, 
+            transparent 90%
+        );
+        -webkit-mask-image: radial-gradient(
+            at 100% 100%, 
+            black 0%, 
+            rgba(0, 0, 0, 0.4) 30%, 
+            transparent 90%
+        );
+    }
+
+    /* Dark Mode Adjustments */
+    :global(.dark) .star-grid-container {
+        background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M32 24Q32 32 27.2 32Q32 32 32 40Q32 32 36.8 32Q32 32 32 24Z' fill='rgba(255, 234, 175, 0.14)'/%3E%3C/svg%3E");
+    }
+</style>
