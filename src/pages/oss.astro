@@ -2,6 +2,7 @@
 export const prerender = true;
 import Layout from '../layouts/Layout.astro';
 import { getCollection, render } from 'astro:content';
+import { env as buildEnv } from 'cloudflare:workers'
 
 // Define languages and their logos (moved from ossRepoList.ts)
 const languages = {
@@ -54,15 +55,12 @@ async function getLatestCommit(repoUrl: string) {
 
 // --- D1 Build Time Test ---
 try {
-  const { env: buildEnv } = await import('cloudflare:workers');
-  if (buildEnv && (buildEnv as any).db) {
-    const db = (buildEnv as any).db;
+  if (buildEnv.db) {
+    const db = buildEnv.db;
     // Harder-to-fake query: checks math and dynamic timestamp
     const testQuery = await db.prepare("SELECT 1 + 1 as two, datetime('now') as ts").first();
     
-    console.error('--- D1 BUILD TIME TEST SUCCESS ---', {
-      result: testQuery
-    });
+    console.info('--- D1 BUILD TIME TEST SUCCESS ---', testQuery);
   } else {
     console.warn('--- D1 BUILD TIME TEST: Binding and/or env.db not found ---');
   }
