@@ -11,6 +11,11 @@
 	let unit = $state("days");
 	let displayValue = $state(1);
 
+	// Profile editing state
+	let isEditingName = $state(false);
+	let newName = $state("");
+	let isSaving = $state(false);
+
 	// Sync logic
 	$effect(() => {
 		if ($session.data?.user) {
@@ -20,6 +25,10 @@
 			limitEnabled = rateLimit > 0;
 			unit = rateLimit >= 24 ? "days" : "hours";
 			displayValue = unit === "days" ? Math.max(1, Math.round(rateLimit / 24)) : Math.max(1, rateLimit);
+			
+			if (!isEditingName) {
+				newName = user.name;
+			}
 		}
 	});
 
@@ -30,6 +39,28 @@
 			notificationRateLimitHours: finalRateLimit,
 		});
 		await $session.refetch?.();
+	}
+
+	async function saveName() {
+		if (!newName || newName.trim() === "") return;
+		isSaving = true;
+		try {
+			const { error } = await authClient.updateUser({
+				name: newName.trim(),
+			});
+			if (error) {
+				console.error("Error updating name:", error);
+				// Reset to current name on error
+				newName = $session.data?.user?.name ?? "";
+			} else {
+				isEditingName = false;
+				await $session.refetch?.();
+			}
+		} catch (e) {
+			console.error("Failed to save name:", e);
+		} finally {
+			isSaving = false;
+		}
 	}
 
 	async function signIn() {
@@ -121,6 +152,50 @@
 
 				<div class="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-stone-950 border border-black/10 dark:border-white/10 rounded-none shadow-2xl z-50 p-5 animate-in fade-in zoom-in-95 duration-150 origin-top-right">
 					<div class="space-y-4">
+						<!-- Profile Section -->
+						<header class="pb-3 border-b border-black/5 dark:border-white/5">
+							<h3 class="text-[0.65rem] font-black text-stone-400 dark:text-stone-500 uppercase tracking-[0.15em] mb-3">Your Profile</h3>
+							<div class="flex items-center gap-3">
+								{#if !isEditingName}
+									<span class="text-sm font-bold text-stone-900 dark:text-stone-100 flex-1 truncate">
+										{newName}
+									</span>
+									<button 
+										onclick={() => isEditingName = true}
+										class="text-[0.6rem] font-black text-amber-600 dark:text-amber-400 hover:underline uppercase tracking-wider"
+									>
+										Edit
+									</button>
+								{:else}
+									<div class="flex items-center gap-2 flex-1 pt-1">
+										<input 
+											type="text" 
+											bind:value={newName}
+											onkeydown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') isEditingName = false; }}
+											class="flex-1 text-sm bg-stone-50 dark:bg-white/5 border border-black/10 dark:border-white/10 px-2 py-1 rounded-none focus:border-amber-500 outline-none h-8"
+											placeholder="New username"
+											autofocus
+										/>
+										<div class="flex flex-col gap-1">
+											<button 
+												onclick={saveName}
+												disabled={isSaving}
+												class="text-[0.6rem] font-black text-emerald-600 dark:text-emerald-400 hover:underline uppercase tracking-wider disabled:opacity-50"
+											>
+												{isSaving ? '...' : 'Save'}
+											</button>
+											<button 
+												onclick={() => isEditingName = false}
+												class="text-[0.6rem] font-black text-stone-400 hover:underline uppercase tracking-wider"
+											>
+												Cancel
+											</button>
+										</div>
+									</div>
+								{/if}
+							</div>
+						</header>
+
 						<header class="pb-1">
 							<h3 class="text-[0.65rem] font-black text-stone-400 dark:text-stone-500 uppercase tracking-[0.15em]">Notification Settings</h3>
 						</header>
