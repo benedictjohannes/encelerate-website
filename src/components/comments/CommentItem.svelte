@@ -12,6 +12,7 @@
 		onCommentAdded = (c: any) => {}, 
 		onCommentDeleted = (id: string) => {},
 		onScrollToComment = (id: string) => {},
+		onToggleExpand = () => {},
 		clearHighlight = () => {}
 	}: {
 		comment: any,
@@ -21,6 +22,7 @@
 		onCommentAdded?: (c: any) => void,
 		onCommentDeleted?: (id: string) => void,
 		onScrollToComment?: (id: string) => void,
+		onToggleExpand?: () => void,
 		clearHighlight?: () => void
 	} = $props();
 	
@@ -144,7 +146,10 @@
 				<button 
 					onclick={() => {
 						showReplyForm = !showReplyForm;
-						if (showReplyForm) clearHighlight();
+						if (showReplyForm) {
+							clearHighlight();
+							onToggleExpand();
+						}
 					}}
 					class="text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-amber-500 transition-colors flex items-center gap-1.5"
 				>
