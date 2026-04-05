@@ -168,6 +168,7 @@
 									</button>
 								{:else}
 									<div class="flex items-center gap-2 flex-1 pt-1">
+										<!-- svelte-ignore a11y_autofocus -->
 										<input 
 											type="text" 
 											bind:value={newName}
