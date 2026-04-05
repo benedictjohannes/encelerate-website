@@ -12,6 +12,50 @@ const MIN_COMMENT_LENGTH = 3;
 const MAX_COMMENT_LENGTH = 2000;
 
 /**
+ * Worker-safe HTML sanitization using native HTMLRewriter.
+ * Strips all tags and attributes not in the whitelist.
+ */
+async function sanitizeComment(html: string) {
+    const ALLOWED_TAGS = ['p', 'br', 'strong', 'b', 'em', 'i', 'code', 'pre', 'ul', 'ol', 'li', 'blockquote', 'mention', 'a'];
+    const ALLOWED_ATTRS: Record<string, string[]> = {
+        'mention': ['userid', 'username'],
+        'a': ['href', 'target', 'rel'],
+    };
+
+    const rewriter = new HTMLRewriter().on('*', {
+        element(el) {
+            const tag = el.tagName.toLowerCase();
+            if (!ALLOWED_TAGS.includes(tag)) {
+                // Remove unknown/dangerous tags but keep their inner text
+                el.removeAndKeepContent();
+                return;
+            }
+
+            // Scrub attributes
+            const allowed = ALLOWED_ATTRS[tag] || [];
+            const toRemove: string[] = [];
+            for (const [name] of (el.attributes as any)) {
+                if (!allowed.includes(name.toLowerCase())) {
+                    toRemove.push(name);
+                }
+            }
+            toRemove.forEach(attrName => el.removeAttribute(attrName));
+
+            // Enforce security for links
+            if (tag === 'a') {
+                el.setAttribute('rel', 'nofollow noopener noreferrer');
+                el.setAttribute('target', '_blank');
+            }
+        },
+    });
+
+    // Use a Response to pipe through the rewriter
+    const response = new Response(html, { headers: { 'Content-Type': 'text/html' } });
+    const transformed = rewriter.transform(response);
+    return await transformed.text();
+}
+
+/**
  * Robustly renders deterministic <mention> tags into @username for text/html emails.
  * Matches logic in CommentItem.svelte but simplified for SSR.
  */
@@ -130,7 +174,9 @@ export const server = {
             let targetComment = null;
 
             let threadUsers: any[] = [];
-            let commentContent = input.content;
+            
+            const commentContentRaw = await sanitizeComment(input.content);
+            let commentContent = commentContentRaw;
 
             if (input.replyId) {
                 targetComment = await db.query.comments.findFirst({
