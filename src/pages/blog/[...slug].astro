@@ -5,6 +5,12 @@ import Layout from '../../layouts/Layout.astro'
 
 export async function getStaticPaths() {
     const posts = await getCollection('blog')
+
+    // TODO: Sync markdown posts with D1 database (posts.title and posts.summary)
+    // Since env.db is available at build time, we can run a loop here to upsert
+    // metadata from each post.data (title/description) into the 'posts' table.
+    // We should also add a frontmatter summary field (for usage with content moderation AI relevance scoring)
+
     return posts.map(post => ({
         params: { slug: post.id },
         props: post,

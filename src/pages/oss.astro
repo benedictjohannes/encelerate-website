@@ -16,6 +16,8 @@ function getLanguageLogo(language: keyof typeof languages): string {
   return languages[language];
 }
 
+// TODO caching table by repo url, including last commit date and last fetch date. Only fetch if last fetch is more than 1 day old.
+
 // Fetch GitHub token from environment (build time) or Cloudflare binding
 let githubToken: string | undefined;
 try {

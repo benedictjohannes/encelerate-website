@@ -295,11 +295,11 @@ export const server = {
 
                                 await sendEmail(env, {
                                     to: mentionedUser.email,
-                                    subject: `You were mentioned in a comment on ${input.slug}`,
+                                    subject: `You were mentioned in a comment on ${postRow?.title ?? input.slug}`,
                                     html: `
                                         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                                             <h3>Hello ${mentionedUser.name},</h3>
-                                            <p><b>${session.user.name}</b> mentioned you in a comment on <b>${input.slug}</b>:</p>
+                                            <p><b>${session.user.name}</b> mentioned you in a comment on <b>${postRow?.title ?? input.slug}</b>:</p>
                                              <div style="border-left: 4px solid #28a745; padding: 12px; font-style: italic; background: #f8f9fa; border-radius: 4px;">
                                                 ${renderMentionsForEmail(commentContent)}
                                              </div>
@@ -364,11 +364,11 @@ export const server = {
 
                             await sendEmail(env, {
                                 to: targetUser.email,
-                                subject: `New reply on your comment on ${input.slug}`,
+                                subject: `New reply on your comment on ${postRow?.title ?? input.slug}`,
                                 html: `
                                     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                                         <h3>Hello ${targetUser.name},</h3>
-                                        <p><b>${session.user.name}</b> replied to your comment on <b>${input.slug}</b>:</p>
+                                        <p><b>${session.user.name}</b> replied to your comment on <b>${postRow?.title ?? input.slug}</b>:</p>
                                          <div style="border-left: 4px solid #007bff; padding: 12px; font-style: italic; background: #f8f9fa; border-radius: 4px;">
                                             ${renderMentionsForEmail(commentContent)}
                                          </div>

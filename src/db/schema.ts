@@ -61,6 +61,8 @@ export const verification = sqliteTable('verification', {
 export const posts = sqliteTable('posts', {
     id: integer('id').primaryKey({ autoIncrement: true }),
     slug: text('slug').notNull().unique(),
+    title: text('title'),
+    summary: text('summary'),
 });
 
 export const postsRelations = relations(posts, ({ many }) => ({

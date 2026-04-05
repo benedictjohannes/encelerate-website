@@ -34,7 +34,9 @@ CREATE TABLE `comments` (
 CREATE INDEX `post_thread_idx` ON `comments` (`postId`,`parentId`,`createdAt`);--> statement-breakpoint
 CREATE TABLE `posts` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`slug` text NOT NULL
+	`slug` text NOT NULL,
+	`title` text,
+	`summary` text
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `posts_slug_unique` ON `posts` (`slug`);--> statement-breakpoint
