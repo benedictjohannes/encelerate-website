@@ -1,7 +1,20 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { Editor, mergeAttributes } from '@tiptap/core';
-	import StarterKit from '@tiptap/starter-kit';
+	import Document from '@tiptap/extension-document';
+	import Paragraph from '@tiptap/extension-paragraph';
+	import Text from '@tiptap/extension-text';
+	import Bold from '@tiptap/extension-bold';
+	import Italic from '@tiptap/extension-italic';
+	import Code from '@tiptap/extension-code';
+	import History from '@tiptap/extension-history';
+	import Blockquote from '@tiptap/extension-blockquote';
+	import BulletList from '@tiptap/extension-bullet-list';
+	import OrderedList from '@tiptap/extension-ordered-list';
+	import ListItem from '@tiptap/extension-list-item';
+	import CodeBlock from '@tiptap/extension-code-block';
+	import HardBreak from '@tiptap/extension-hard-break';
+	import Link from '@tiptap/extension-link';
 	import Mention from '@tiptap/extension-mention';
 	import Placeholder from '@tiptap/extension-placeholder';
 
@@ -12,7 +25,7 @@
 		threadUsers = [],
 		onInteraction = () => {},
 		autofocus = false,
-        currentUserId = null,
+		currentUserId = null,
 		className = "",
 		mentionsEnabled = true
 	}: {
@@ -22,7 +35,7 @@
 		threadUsers?: any[],
 		onInteraction?: () => void,
 		autofocus?: boolean,
-        currentUserId?: string | null,
+		currentUserId?: string | null,
 		className?: string,
 		mentionsEnabled?: boolean
 	} = $props();
@@ -45,7 +58,7 @@
 			.filter(user => {
 				// Prevent double mentioning the same user
 				const isAlreadyMentioned = new RegExp(`<mention[^>]+userid="${user.id}"`, 'i').test(value);
-                const isSelf = user.id === currentUserId;
+				const isSelf = user.id === currentUserId;
 				const matchesSearch = user.name.toLowerCase().includes(searchLower);
 				return !isAlreadyMentioned && !isSelf && matchesSearch;
 			})
@@ -54,28 +67,28 @@
 
 	// Custom Mention Extension to handle our specific tag format
 	const CustomMention = Mention.extend({
-        name: 'mention',
+		name: 'mention',
 
-        addAttributes() {
-            return {
-                id: {
-                    default: null,
-                    parseHTML: element => element.getAttribute('userId') || element.getAttribute('userid'),
-                    renderHTML: attributes => {
-                        if (!attributes.id) return {}
-                        return { userid: attributes.id }
-                    },
-                },
-                label: {
-                    default: null,
-                    parseHTML: element => element.getAttribute('userName') || element.getAttribute('username'),
-                    renderHTML: attributes => {
-                        if (!attributes.label) return {}
-                        return { username: attributes.label }
-                    },
-                },
-            }
-        },
+		addAttributes() {
+			return {
+				id: {
+					default: null,
+					parseHTML: element => element.getAttribute('userId') || element.getAttribute('userid'),
+					renderHTML: attributes => {
+						if (!attributes.id) return {}
+						return { userid: attributes.id }
+					},
+				},
+				label: {
+					default: null,
+					parseHTML: element => element.getAttribute('userName') || element.getAttribute('username'),
+					renderHTML: attributes => {
+						if (!attributes.label) return {}
+						return { username: attributes.label }
+					},
+				},
+			}
+		},
 
 		parseHTML() {
 			return [
@@ -85,23 +98,39 @@
 			];
 		},
 
-        renderHTML({ node, HTMLAttributes }) {
-            return [
-                'mention',
-                mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-                    class: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-sm font-bold border border-amber-200 dark:border-amber-500/30'
-                }),
-                `@${node.attrs.label}`,
-            ]
-        },
+		renderHTML({ node, HTMLAttributes }) {
+			return [
+				'mention',
+				mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+					class: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-sm font-bold border border-amber-200 dark:border-amber-500/30'
+				}),
+				`@${node.attrs.label}`,
+			]
+		},
 	});
 
 	onMount(() => {
 		editor = new Editor({
 			element: editorElement!,
 			extensions: [
-				StarterKit.configure({
-                    heading: false,
+				Document,
+				Paragraph,
+				Text,
+				Bold,
+				Italic,
+				Code,
+				History,
+				Blockquote,
+				BulletList,
+				OrderedList,
+				ListItem,
+				CodeBlock,
+				HardBreak,
+				Link.configure({
+					openOnClick: false,
+					HTMLAttributes: {
+						class: 'text-amber-600 dark:text-amber-400 hover:underline',
+					},
 				}),
 				Placeholder.configure({
 					placeholder,
@@ -274,7 +303,7 @@
 	<div 
 		bind:this={editorElement}
 		onfocus={onInteraction}
-		class="{className} w-full min-h-24 p-4 rounded-none bg-stone-50 dark:bg-stone-950 border border-black/5 dark:border-white/5 focus-within:border-amber-500/50 outline-none transition-all text-[0.95rem] font-mono leading-relaxed shadow-inner tiptap-editor"
+		class="{className} w-full min-h-24 p-4 rounded-none bg-stone-50 dark:bg-stone-950 border border-black/5 dark:border-white/5 focus-within:border-amber-500/50 outline-none transition-all text-[0.95rem] font-sans leading-relaxed shadow-inner tiptap-editor"
 	></div>
 
 	{#if showMentionsPool && mentionCandidates.length > 0}
@@ -306,11 +335,12 @@
 </div>
 
 <style>
-	:global(.tiptap-editor .ProseMirror) {
-		outline: none;
+	:global(.tiptap-editor .ProseMirror, .tiptap-editor .ProseMirror:focus, .tiptap-editor .ProseMirror:focus-visible) {
+		outline: none !important;
+		box-shadow: none !important;
 		min-height: 5rem;
 		white-space: pre-wrap;
-        font-family: inherit;
+		font-family: inherit;
 	}
 
     :global(.tiptap-editor .ProseMirror strong) {
@@ -337,14 +367,15 @@
 
     :global(.tiptap-editor .ProseMirror ul) {
         list-style-type: disc !important;
-        padding-left: 1.25rem !important;
-        margin-bottom: 0.5rem !important;
+        padding-left: 1.5rem !important;
+        margin-left: 0.5rem !important;
+        margin-bottom: 0.75rem !important;
     }
-
     :global(.tiptap-editor .ProseMirror ol) {
         list-style-type: decimal !important;
-        padding-left: 1.25rem !important;
-        margin-bottom: 0.5rem !important;
+        padding-left: 1.5rem !important;
+        margin-left: 0.5rem !important;
+        margin-bottom: 0.75rem !important;
     }
 
     :global(.tiptap-editor .ProseMirror li) {

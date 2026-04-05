@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { marked } from "marked";
 	import DOMPurify from "isomorphic-dompurify";
 	import CommentForm from "./CommentForm.svelte";
 	import { actions } from "astro:actions";
@@ -31,13 +30,6 @@
 
 	let isHighlighted = $derived(highlightedId === comment.id);
 
-	// Custom Markdown Renderer
-	const renderer = new marked.Renderer();
-	// @ts-ignore
-	renderer.image = ({ href, title, text }) => {
-		return `<img src="${href}" alt="${text || ""}" title="${title || ""}" loading="lazy" class="max-w-full h-auto rounded-none my-4 border border-black/10 dark:border-white/10 shadow-frame" />`;
-	};
-
 	const renderedContent = $derived.by(() => {
 		if (comment.deletedAt) {
 			const d = new Date(comment.deletedAt);
@@ -46,14 +38,13 @@
 			return `<div class="italic text-stone-400 font-mono text-[11px] py-1">[ Comment Deleted on ${dateStr} ${timeStr} ]</div>`;
 		}
 		try {
-			// First parse markdown
-			let rawHtml = marked.parse(comment.content || "", { renderer }) as string;
+			// We now store pure HTML from Tiptap, so no Markdown parsing needed.
+			let rawHtml = comment.content || "";
 			
-			// Then replace deterministic mentions with styled Spans.
-			// Robust regex that handles attribute order, case, and escaping
+			// Replace deterministic mentions with styled Spans.
 			const mentionRegex = /(?:<|&lt;)mention\s+([^>&]+?)\s*\/?(?:>|&gt;)/gi;
 			
-			rawHtml = rawHtml.replace(mentionRegex, (match, attrs) => {
+			rawHtml = rawHtml.replace(mentionRegex, (match: string, attrs: string) => {
 				const idMatch = attrs.match(/userid=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i) || attrs.match(/userId=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i);
 				const nameMatch = attrs.match(/username=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i) || attrs.match(/userName=(?:"|&quot;)([^"&]+)(?:"|&quot;)/i);
 				
@@ -66,7 +57,7 @@
 
 			return DOMPurify.sanitize(rawHtml);
 		} catch (e) {
-			console.error("Markdown error:", e);
+			console.error("Content processing error:", e);
 			return comment.content || "";
 		}
 	});

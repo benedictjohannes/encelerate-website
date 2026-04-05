@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { onMount, type Component } from "svelte";
 	import { actions } from "astro:actions";
 	import { authClient } from "../../lib/auth.client";
-	import CommentTextArea from "./CommentTextArea.svelte";
 
 	const MIN_COMMENT_LENGTH = 3;
 	const MAX_COMMENT_LENGTH = 2000;
@@ -28,6 +28,24 @@
 	let content = $state("");
 	let isSubmitting = $state(false);
 	let error = $state("");
+
+	let CommentEditor = $state<Component<any> | null>(null);
+	let isLoadingEditor = $state(false);
+
+	async function loadEditor() {
+		if (CommentEditor || isLoadingEditor) return;
+		isLoadingEditor = true;
+		const mod = await import("./CommentTextArea.svelte");
+		CommentEditor = mod.default;
+		isLoadingEditor = false;
+	}
+
+	onMount(() => {
+		// Only auto-load if this is a reply (intent is already established)
+		if (replyToId) {
+			loadEditor();
+		}
+	});
 
 	// Prefill mention when replying
 	$effect(() => {
@@ -76,18 +94,36 @@
 <div class="comment-form-container">
 	{#if $session.data}
 		<form onsubmit={handleSubmit} class="group space-y-4">
-			<div class="relative">
-				<CommentTextArea
-					bind:value={content}
-					{threadUsers}
-					{onInteraction}
-					{autofocus}
-					{currentUserId}
-					mentionsEnabled={!!replyToId}
-					placeholder={replyToId ? "Write a thoughtful reply..." : "Share your thoughts on this article..."}
-					disabled={isSubmitting}
-				/>
-				
+			<div class="relative w-full min-h-24 bg-stone-50 dark:bg-stone-950 border border-black/5 dark:border-white/5">
+				{#if CommentEditor}
+					<CommentEditor
+						bind:value={content}
+						{threadUsers}
+						{onInteraction}
+						{autofocus}
+						{currentUserId}
+						mentionsEnabled={!!replyToId}
+						placeholder={replyToId ? "Write a thoughtful reply..." : "Share your thoughts on this article..."}
+						disabled={isSubmitting}
+						className="border-none! bg-transparent! shadow-none!"
+					/>
+				{:else}
+					<button 
+						type="button"
+						onclick={loadEditor}
+						onfocus={loadEditor}
+						class="w-full h-full min-h-24 p-4 text-left text-[0.95rem] font-sans text-stone-400 dark:text-stone-500 cursor-text outline-none focus:ring-0 transition-opacity {isLoadingEditor ? 'opacity-50' : 'opacity-100'}"
+					>
+						{isLoadingEditor ? 'Initializing editor...' : (replyToId ? "Wait, loading reply box..." : "Share your thoughts on this article...")}
+						
+						{#if isLoadingEditor}
+							<div class="absolute inset-0 flex items-center justify-center animate-pulse pointer-events-none">
+								<span class="text-[10px] font-mono text-amber-500 uppercase tracking-widest font-black">Loading...</span>
+							</div>
+						{/if}
+					</button>
+				{/if}
+
 				<div class="absolute bottom-4 right-6 flex items-center gap-4">
 					{#if content.length > 1500}
 						<span class="text-[10px] font-black {content.length > 2000 ? 'text-red-500' : 'text-stone-400'}">
