@@ -52,6 +52,25 @@ async function getLatestCommit(repoUrl: string) {
   }
 }
 
+// --- D1 Build Time Test ---
+try {
+  const { env: buildEnv } = await import('cloudflare:workers');
+  if (buildEnv && (buildEnv as any).db) {
+    const db = (buildEnv as any).db;
+    // Harder-to-fake query: checks math and dynamic timestamp
+    const testQuery = await db.prepare("SELECT 1 + 1 as two, datetime('now') as ts").first();
+    
+    console.error('--- D1 BUILD TIME TEST SUCCESS ---', {
+      result: testQuery
+    });
+  } else {
+    console.warn('--- D1 BUILD TIME TEST: Binding and/or env.db not found ---');
+  }
+} catch (e: any) {
+  console.error('--- D1 BUILD TIME TEST: Import error ---', e.message);
+}
+// --- End D1 Test ---
+
 // Fetch and Enrich OSS Projects from Content Collection
 const ossEntries = await getCollection('oss');
 const enrichedProjects = await Promise.all(
