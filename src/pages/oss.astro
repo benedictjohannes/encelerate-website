@@ -60,7 +60,7 @@ try {
     // Harder-to-fake query: checks math and dynamic timestamp
     const testQuery = await db.prepare("SELECT 1 + 1 as two, datetime('now') as ts").first();
     
-    console.info('--- D1 BUILD TIME TEST SUCCESS ---', testQuery);
+    console.error('--- D1 BUILD TIME TEST SUCCESS ---', testQuery);
   } else {
     console.warn('--- D1 BUILD TIME TEST: Binding and/or env.db not found ---');
   }
