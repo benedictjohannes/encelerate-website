@@ -236,6 +236,10 @@ export const server = {
                                 await sendEmail(env, {
                                     to: mentionedUser.email,
                                     subject: `You were mentioned in a comment on ${postRow?.title ?? input.slug}`,
+                                    headers: {
+                                        'List-Unsubscribe': `<${unsubscribeUrl}>`,
+                                        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+                                    },
                                     html: `
                                         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                                             <h3>Hello ${mentionedUser.name},</h3>
@@ -301,10 +305,13 @@ export const server = {
                         try {
                             const unsubscribeToken = await generateUnsubscribeToken(targetUser.id, env.betterAuthSecret);
                             const unsubscribeUrl = `https://encelerate.com/api/notifications/unsubscribe?uid=${targetUser.id}&token=${unsubscribeToken}`;
-
                             await sendEmail(env, {
                                 to: targetUser.email,
                                 subject: `New reply on your comment on ${postRow?.title ?? input.slug}`,
+                                headers: {
+                                    'List-Unsubscribe': `<${unsubscribeUrl}>`,
+                                    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+                                },
                                 html: `
                                     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                                         <h3>Hello ${targetUser.name},</h3>

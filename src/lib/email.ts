@@ -5,11 +5,12 @@ export type SendEmailOptions = {
     subject: string;
     html: string;
     from?: string;
+    headers?: Record<string, string>;
 };
 
 /**
- * Sends an email using AWS SES via the v4 signing protocol.
- * Optimized for Cloudflare Workers using aws4fetch.
+ * Sends an email using AWS SES v2 via the v4 signing protocol.
+ * Native headers support allows for List-Unsubscribe and other custom headers.
  */
 export async function sendEmail(env: { 
     awsSesAccessKeyId: string, 
@@ -26,27 +27,38 @@ export async function sendEmail(env: {
         ? (options.from.includes('<') ? options.from : `${options.from} <${env.awsSesSenderEmail}>`)
         : `encelerate.com blog <${env.awsSesSenderEmail}>`;
 
-    const body = new URLSearchParams({
-        'Action': 'SendEmail',
-        'Source': fromStr,
-        'Destination.ToAddresses.member.1': options.to,
-        'Message.Subject.Data': options.subject,
-        'Message.Body.Html.Data': options.html,
-        'Message.Subject.Charset': 'UTF-8',
-        'Message.Body.Html.Charset': 'UTF-8',
-    });
+    const payload = {
+        FromEmailAddress: fromStr,
+        Destination: {
+            ToAddresses: [options.to]
+        },
+        Content: {
+            Simple: {
+                Subject: { Data: options.subject, Charset: 'UTF-8' },
+                Body: {
+                    Html: { Data: options.html, Charset: 'UTF-8' }
+                }
+            }
+        },
+        // Map headers if provided
+        ...(options.headers && {
+            EmailAttributes: {
+                AdditionalHeaders: Object.entries(options.headers).map(([Name, Value]) => ({ Name, Value }))
+            }
+        })
+    };
 
-    const response = await aws.fetch('https://email.ap-southeast-1.amazonaws.com', {
+    const response = await aws.fetch('https://email.ap-southeast-1.amazonaws.com/v2/email/outbound-emails', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
         },
-        body: body.toString(),
+        body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
         const error = await response.text();
-        console.error('SES Email Error:', error);
+        console.error('SES V2 Email Error:', error);
         throw new Error(`Failed to send email: ${response.statusText}`);
     }
 
