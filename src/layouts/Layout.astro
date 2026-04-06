@@ -29,6 +29,7 @@ const markdownAbsoluteUrl = (markdownUrl && Astro.site) ? new URL(markdownUrl, A
         <meta charset='UTF-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1, viewport-fit=cover' />
         <link rel='icon' type='image/svg+xml' href={logoImg.src} />
+        <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href="/rss.xml" />
         {canonicalURL && <link rel='canonical' href={canonicalURL.href} />}
         <meta name='generator' content={Astro.generator} />
         <title>{title ? `${title} - ${SITE_TITLE}` : SITE_TITLE}</title>
