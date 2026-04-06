@@ -55,7 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
         // Set AWS_SNS_BOUNCES_TOPIC_ARN in your environment variables.
         const expectedTopic = env.awsSnsBouncesTopicArn;
         if (expectedTopic && body.TopicArn !== expectedTopic) {
-            console.error('[SNS] Mismatched TopicArn:', body.TopicArn);
+            console.error('[SNS] Mismatched TopicArn:', { body });
             return new Response('Unauthorized', { status: 403 });
         }
 
@@ -65,7 +65,7 @@ export const POST: APIRoute = async ({ request }) => {
                 console.error('[SNS] SubscriptionConfirmation missing SubscribeURL');
                 return new Response('Missing SubscribeURL', { status: 400 });
             }
-            console.log('[SNS] Subscription Confirmation received. URL:', body.SubscribeURL);
+            console.error('[SNS] Subscription Confirmation received. URL:', body.SubscribeURL);
             const response = await fetch(body.SubscribeURL);
             if (response.ok) {
                 console.log('[SNS] Subscription confirmed successfully.');
