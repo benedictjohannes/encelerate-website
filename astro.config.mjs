@@ -73,4 +73,7 @@ export default defineConfig({
 			external: ['aws4fetch', 'better-auth']
 		}
 	},
+	security: {
+		checkOrigin: false,
+	}
 });

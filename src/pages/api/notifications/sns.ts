@@ -48,12 +48,15 @@ interface SESNotification {
  * Sets user.emailNotificationsEnabled = false for any matching email records.
  */
 export const POST: APIRoute = async ({ request }) => {
+    const rawBody = await request.text();
+    console.log('[SNS] Received Raw Body:', rawBody);
+
     try {
-        const body = await request.json() as SNSBody;
+        const body = JSON.parse(rawBody) as SNSBody;
         
         // DEBUG: Log exactly what arrives to identify source of 403
         const expectedTopic = env.awsSnsBouncesTopicArn;
-        console.log(`[SNS] Request Received. Type: ${body.Type}, Topic: ${body.TopicArn}`);
+        console.log(`[SNS] Parsed Type: ${body.Type}, Topic: ${body.TopicArn}`);
         console.log(`[SNS] Validation Check. Expected: ${expectedTopic}`);
 
         // 1. Basic Topic Validation (if configured)
