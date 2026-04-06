@@ -51,11 +51,18 @@ export const POST: APIRoute = async ({ request }) => {
     try {
         const body = await request.json() as SNSBody;
         
-        // 1. Basic Topic Validation (if configured)
-        // Set AWS_SNS_BOUNCES_TOPIC_ARN in your environment variables.
+        // DEBUG: Log exactly what arrives to identify source of 403
         const expectedTopic = env.awsSnsBouncesTopicArn;
+        console.log(`[SNS] Request Received. Type: ${body.Type}, Topic: ${body.TopicArn}`);
+        console.log(`[SNS] Validation Check. Expected: ${expectedTopic}`);
+
+        // 1. Basic Topic Validation (if configured)
+        // Set awsSnsBouncesTopicArn in your environment variables.
         if (expectedTopic && body.TopicArn !== expectedTopic) {
-            console.error('[SNS] Mismatched TopicArn:', { body });
+            console.error('[SNS] Mismatched TopicArn!', { 
+                received: body.TopicArn, 
+                expected: expectedTopic 
+            });
             return new Response('Unauthorized', { status: 403 });
         }
 
