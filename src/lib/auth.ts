@@ -13,7 +13,7 @@ export const getAuth = (db: D1Database, env: Env) => {
 			provider: "sqlite",
 			schema,
 		}),
-		baseURL: env.BETTER_AUTH_URL,
+		baseURL: env.baseUrl,
 		socialProviders: {
 			google: {
 				clientId: env.authGoogleClientId,
