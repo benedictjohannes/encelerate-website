@@ -10,7 +10,7 @@ export type SendEmailOptions = {
 
 /**
  * Sends an email using AWS SES v2 via the v4 signing protocol.
- * Native headers support allows for List-Unsubscribe and other custom headers.
+ * Uses Raw content to support custom headers like List-Unsubscribe.
  */
 export async function sendEmail(env: { 
     awsSesAccessKeyId: string, 
@@ -27,25 +27,25 @@ export async function sendEmail(env: {
         ? (options.from.includes('<') ? options.from : `${options.from} <${env.awsSesSenderEmail}>`)
         : `encelerate.com blog <${env.awsSesSenderEmail}>`;
 
+    // Construct raw MIME message to support custom headers
+    const rawMime = [
+        `From: ${fromStr}`,
+        `To: ${options.to}`,
+        `Subject: ${options.subject}`,
+        `MIME-Version: 1.0`,
+        `Content-Type: text/html; charset=UTF-8`,
+        ...Object.entries(options.headers || {}).map(([name, value]) => `${name}: ${value}`),
+        '',
+        options.html
+    ].join('\r\n');
+
     const payload = {
-        FromEmailAddress: fromStr,
-        Destination: {
-            ToAddresses: [options.to]
-        },
         Content: {
-            Simple: {
-                Subject: { Data: options.subject, Charset: 'UTF-8' },
-                Body: {
-                    Html: { Data: options.html, Charset: 'UTF-8' }
-                }
+            Raw: {
+                // btoa(unescape(encodeURIComponent(str))) is a robust way to do base64 in environments without Buffer
+                Data: btoa(unescape(encodeURIComponent(rawMime)))
             }
-        },
-        // Map headers if provided
-        ...(options.headers && {
-            EmailAttributes: {
-                AdditionalHeaders: Object.entries(options.headers).map(([Name, Value]) => ({ Name, Value }))
-            }
-        })
+        }
     };
 
     const response = await aws.fetch('https://email.ap-southeast-1.amazonaws.com/v2/email/outbound-emails', {
@@ -58,7 +58,7 @@ export async function sendEmail(env: {
 
     if (!response.ok) {
         const error = await response.text();
-        console.error('SES V2 Email Error:', error);
+        console.error('SES V2 Raw Email Error:', error);
         throw new Error(`Failed to send email: ${response.statusText}`);
     }
 
