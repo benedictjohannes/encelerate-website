@@ -1,7 +1,11 @@
 ---
-export const prerender = true;
+export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import { getCollection, render } from 'astro:content';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
+import { env } from 'cloudflare:workers';
+import * as schema from '../db/schema';
 
 // Define languages and their logos (moved from ossRepoList.ts)
 const languages = {
@@ -16,13 +20,11 @@ function getLanguageLogo(language: keyof typeof languages): string {
   return languages[language];
 }
 
-// TODO caching table by repo url, including last commit date and last fetch date. Only fetch if last fetch is more than 1 day old.
-
 // Fetch GitHub token from environment (build time) or Cloudflare binding
 let githubToken: string | undefined;
 try {
   const workers = await import('cloudflare:workers');
-  githubToken = (workers.env as any).githubPublicRepoReadOnlyAccessBenedictJohannes;
+  githubToken = workers.env.githubPublicRepoReadOnlyAccessBenedictJohannes;
 } catch (e) {
   githubToken = process.env.githubPublicRepoReadOnlyAccessBenedictJohannes;
 }
@@ -32,6 +34,19 @@ async function getLatestCommit(repoUrl: string) {
   const repoPath = repoUrl.replace('https://github.com/', '');
   const url = `https://api.github.com/repos/${repoPath}/commits?per_page=1`;
   
+  const db = drizzle(env.db, { schema });
+  
+  // 1. Check Cache
+  const cached = await db.query.ossCache.findFirst({
+    where: eq(schema.ossCache.repoUrl, repoUrl)
+  });
+
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  if (cached && cached.lastFetchDate > oneDayAgo) {
+    return cached.lastCommitDate;
+  }
+
+  // 2. Fetch from GitHub
   const headers: HeadersInit = {
     'Accept': 'application/vnd.github.v3+json',
     'User-Agent': 'Encelerate-OSS-Fetcher'
@@ -47,10 +62,28 @@ async function getLatestCommit(repoUrl: string) {
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
     const data = await response.json() as any[];
-    return data[0]?.commit?.committer?.date || null;
+    const lastCommitDate = data[0]?.commit?.committer?.date || null;
+    
+    // 3. Update Cache
+    await db.insert(schema.ossCache)
+      .values({
+        repoUrl,
+        lastCommitDate,
+        lastFetchDate: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: schema.ossCache.repoUrl,
+        set: {
+          lastCommitDate,
+          lastFetchDate: new Date(),
+        }
+      });
+
+    return lastCommitDate;
   } catch (error) {
     console.error(`Error fetching commit for ${repoPath}:`, error);
-    return null;
+    // Return stale cache if available
+    return cached?.lastCommitDate || null;
   }
 }
 

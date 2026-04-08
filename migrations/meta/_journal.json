@@ -8,6 +8,13 @@
       "when": 1775409489715,
       "tag": "0000_initial-schema",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1775639311788,
+      "tag": "0001_add-oss-commit-date-caching",
+      "breakpoints": true
     }
   ]
 }

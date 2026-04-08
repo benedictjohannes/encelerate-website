@@ -114,5 +114,12 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
     repliesDirect: many(comments, { relationName: 'directReplies' }),
 }));
 
+// OSS Cache Table
+export const ossCache = sqliteTable('oss_cache', {
+    repoUrl: text('repo_url').primaryKey(),
+    lastCommitDate: text('last_commit_date'),
+    lastFetchDate: integer('last_fetch_date', { mode: 'timestamp' }).notNull(),
+});
+
 
 
