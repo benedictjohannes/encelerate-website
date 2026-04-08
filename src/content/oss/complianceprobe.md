@@ -16,4 +16,4 @@ shields:
     img: https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square
     url: https://pkg.go.dev/github.com/benedictjohannes/ComplianceProbe
 ---
-A cross-platform security compliance reporting agent. It executes automated checks defined in YAML "playbooks" to verify system integrity, security configurations, and hardware state. Features embedded JavaScript logic, weighted scoring, and multi-platform support (Linux, Windows, macOS).
+A cross-platform security compliance reporting agent. It executes automated checks defined in YAML "playbooks" to verify system integrity, security configurations, and hardware state. Features embedded JavaScript logic, weighted scoring, multi-platform support and optional remote integration.
