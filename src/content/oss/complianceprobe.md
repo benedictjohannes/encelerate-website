@@ -10,8 +10,8 @@ shields:
     img: https://img.shields.io/github/v/release/benedictjohannes/ComplianceProbe?style=flat-square&logo=go
     url: https://github.com/benedictjohannes/ComplianceProbe/releases
   - label: NPM Version
-    img: https://img.shields.io/npm/v/compliance-probe.svg?style=flat-square
-    url: https://www.npmjs.com/package/compliance-probe
+    img: https://img.shields.io/npm/v/crobe-sdk.svg?style=flat-square
+    url: https://www.npmjs.com/package/crobe-sdk
   - label: Go Reference
     img: https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square
     url: https://pkg.go.dev/github.com/benedictjohannes/ComplianceProbe
