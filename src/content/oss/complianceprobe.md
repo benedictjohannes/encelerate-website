@@ -1,19 +1,19 @@
 ---
 name: ComplianceProbe
 language: Go
-repo: https://github.com/benedictjohannes/ComplianceProbe
+repo: https://github.com/benedictjohannes/crobe
 shields:
   - label: Build Status
-    img: https://img.shields.io/github/actions/workflow/status/benedictjohannes/ComplianceProbe/release.yml
-    url: https://github.com/benedictjohannes/ComplianceProbe/actions
+    img: https://img.shields.io/github/actions/workflow/status/benedictjohannes/crobe/release.yml
+    url: https://github.com/benedictjohannes/crobe/actions
   - label: Release Version
-    img: https://img.shields.io/github/v/release/benedictjohannes/ComplianceProbe?style=flat-square&logo=go
-    url: https://github.com/benedictjohannes/ComplianceProbe/releases
+    img: https://img.shields.io/github/v/release/benedictjohannes/crobe?style=flat-square&logo=go
+    url: https://github.com/benedictjohannes/crobe/releases
   - label: NPM Version
     img: https://img.shields.io/npm/v/crobe-sdk.svg?style=flat-square
     url: https://www.npmjs.com/package/crobe-sdk
   - label: Go Reference
     img: https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square
-    url: https://pkg.go.dev/github.com/benedictjohannes/ComplianceProbe
+    url: https://pkg.go.dev/github.com/benedictjohannes/crobe
 ---
 A cross-platform security compliance reporting agent. It executes automated checks defined in YAML "playbooks" to verify system integrity, security configurations, and hardware state. Features embedded JavaScript logic, weighted scoring, multi-platform support and optional remote integration.
