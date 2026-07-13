@@ -1,5 +1,3 @@
-import { AwsClient } from 'aws4fetch';
-
 export type SendEmailOptions = {
     to: string;
     subject: string;
@@ -9,58 +7,48 @@ export type SendEmailOptions = {
 };
 
 /**
- * Sends an email using AWS SES v2 via the v4 signing protocol.
- * Uses Raw content to support custom headers like List-Unsubscribe.
+ * Sends an email using the Plunk API.
  */
 export async function sendEmail(env: { 
-    awsSesAccessKeyId: string, 
-    awsSesSecretAccessKey: string,
-    awsSesSenderEmail: string 
+    plunkApiKey: string 
 }, options: SendEmailOptions) {
-    const aws = new AwsClient({
-        accessKeyId: env.awsSesAccessKeyId,
-        secretAccessKey: env.awsSesSecretAccessKey,
-        region: 'ap-southeast-1', 
-    });
+    let fromEmail = 'blog-notifications@mail.encelerate.com';
+    let fromName = 'encelerate.com blog';
 
-    const fromStr = options.from 
-        ? (options.from.includes('<') ? options.from : `${options.from} <${env.awsSesSenderEmail}>`)
-        : `encelerate.com blog <${env.awsSesSenderEmail}>`;
-
-    // Construct raw MIME message to support custom headers
-    const rawMime = [
-        `From: ${fromStr}`,
-        `To: ${options.to}`,
-        `Subject: ${options.subject}`,
-        `MIME-Version: 1.0`,
-        `Content-Type: text/html; charset=UTF-8`,
-        ...Object.entries(options.headers || {}).map(([name, value]) => `${name}: ${value}`),
-        '',
-        options.html
-    ].join('\r\n');
-
-    const payload = {
-        Content: {
-            Raw: {
-                // btoa(unescape(encodeURIComponent(str))) is a robust way to do base64 in environments without Buffer
-                Data: btoa(unescape(encodeURIComponent(rawMime)))
-            }
+    if (options.from) {
+        const match = options.from.match(/^(.*?)\s*<(.*?)>$/);
+        if (match) {
+            fromName = match[1].trim();
+            fromEmail = match[2].trim();
+        } else {
+            fromName = options.from.trim();
         }
-    };
+    }
 
-    const response = await aws.fetch('https://email.ap-southeast-1.amazonaws.com/v2/email/outbound-emails', {
+    const response = await fetch('https://next-api.useplunk.com/v1/send', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${env.plunkApiKey}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+            to: options.to,
+            subject: options.subject,
+            body: options.html,
+            from: {
+                name: fromName,
+                email: fromEmail,
+            },
+            headers: options.headers,
+        }),
     });
 
     if (!response.ok) {
         const error = await response.text();
-        console.error('SES V2 Raw Email Error:', error);
+        console.error('Plunk Email Error:', error);
         throw new Error(`Failed to send email: ${response.statusText}`);
     }
 
     return response;
 }
+
