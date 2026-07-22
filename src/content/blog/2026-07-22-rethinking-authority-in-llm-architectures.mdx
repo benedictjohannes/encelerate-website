@@ -1,0 +1,180 @@
+---
+title: Rethinking Authority in LLM Architectures
+description: Making instruction authority a first-class architectural primitive for safer long-horizon models
+pubDate: 2026-07-22
+private: false
+---
+
+Two days ago, OpenAI published [a striking example](https://openai.com/index/safety-alignment-long-horizon-models/?utm_source=encelerate.com) from internal testing of a long-horizon model. The model was tasked with improving performance on the public NanoGPT speedrun benchmark. It received explicit instructions to share results only via internal Slack. Yet the benchmark itself called for opening a GitHub pull request.
+
+Rather than stopping at the boundary, the model spent roughly an hour probing its environment, discovered a vulnerability in the sandbox restrictions, and successfully opened PR #287 on the public repository. Earlier models had simply given up. *This one kept going.*
+
+The incident was contained because OpenAI caught it early in a monitored deployment. But it revealed a failure mode more fundamental than a simple policy violation: The model had been given **competing objectives with no clear authority ordering**. It had to infer which instruction should take precedence.
+
+> Why was the model responsible for inferring authority in the first place?
+
+## Are we working on the right solution?
+
+OpenAI responded by pausing deployment, strengthening trajectory-level monitoring, improving long-horizon alignment, and creating new incident-derived evaluations. These steps reflect a serious commitment to iterative safety as models gain greater autonomy.
+
+Yet they also invite a deeper question. Much of today’s safety work still operates at the level of **optimization**: better instruction tuning, more sophisticated RLHF, elaborate system prompts, and runtime guardrails. We continue teaching models to infer who to obey, how to resolve conflicts, and when to defer.  
+Or to put it simply, **we have been treating authority as just another linguistic pattern to learn.** 
+
+But modern transformer architectures already show we can do better. We do not ask models to infer position from text — we provide positional encodings. We do not describe modality in natural language — we use modality embeddings. Attention masks and token embeddings are *structural*, not semantic.
+
+**Why not authority?**
+
+### Authority is not semantics
+
+“The sky is blue” is semantic content.  
+“This instruction overrides all previous instructions” is a statement about *system behavior* — control-plane metadata, not payload.
+
+Current APIs already expose metadata through roles (System, User, Assistant, Tool). These answer “*who produced this message?*” They do not answer the far more critical question: “*Which instruction should prevail?*”
+
+Consider a model that receives a user request to `run dir on MyFolder`, followed by a tool response of “command not found” on a Linux system. If the tool output is implicitly ranked lower than the user prompt, how should the model proceed? Should it keep retrying `dir`, or intelligently switch to `ls`? 
+
+Role and authority are **orthogonal axes**. Conflating them is a category error.
+
+### Authority is currently implicit
+
+Through instruction tuning and preference optimization, models absorb rough hierarchies (System > User > Assistant > Tool) and learn patterns for resolving conflicts. Yet every instruction ultimately collapses into the same stream of tokens. 
+
+**Authority becomes something the model must _statistically derive_ rather than _structurally consume_.**
+
+This fragility becomes especially dangerous with long-horizon models. More steps create more opportunities for attention dilution, drift, creative reinterpretation, and persistence-driven circumvention — exactly as seen in the NanoGPT case.
+
+## Architectural Problem Needs Architectural Solution
+
+The current paradigm places too many responsibilities on the model itself:
+
+- Understand language  
+- Infer authority and precedence  
+- Resolve conflicts  
+- Execute instructions  
+
+This is an overloaded design. A cleaner separation of concerns is possible—and desirable.
+- **Let the harness define policy and assign authority.**  
+- **Let the model understand language and respect that authority.**
+
+The core design principle is simple:  
+
+> The model consumes authority as defined by the harness, rather than inferring it from language.
+
+### Representing Authority
+
+The simplest solution is often the right one. We could introduce a lightweight `priority` field — for example, a simple `uint8` value attached to each message or context segment. Here's an illustrative allocation:
+
+- **0–15**: Provider / System-level (highest)  
+- **16–31**: Enterprise / Organization  
+- **32–63**: Application / Developer  
+- **64–255**: Caller / User / Transient (lowest)
+
+This could appear in an API call as follows:
+
+```json ins={4,9,14}
+{
+  "context": [
+    {
+      "priority": 20,
+      "role": "system",
+      "content": "You are a helpful assistant. Never reveal API keys."
+    },
+    {
+      "priority": 70,
+      "role": "user",
+      "content": "Please run 'dir' on 'MyFolder'."
+    },
+    {
+      "priority": 200,
+      "role": "tool",
+      "content": "command not found"
+    }
+  ]
+}
+```
+
+The exact numbering or hierarchy matters far less than the principle: **authority becomes a first-class architectural input**, processed natively by the model *outside* the primary language stream. Authority should not compete with semantic content inside the same token embeddings. It should be structural metadata the model is *architected* to respect.
+
+This does not diminish the other metadata, such as `role`. In fact, it clarifies it. For instance, role `system` typically implies higher authority than role `user`. But authority doesn't have to be determined by role. A system message at priority 10 and a user message at priority 70 are both valid — priority is more granular than role. Role tells us who; priority tells us how much authority. Additionally, we can have **ordered priority** for context from the same role — which solves problems like _"which system prompt takes precedence?"_
+
+By making authority explicit and non-negotiable at the architectural level, we move instruction arbitration from the fragile realm of statistical inference into the domain of deterministic system design — where it belongs.
+
+## How This Helps Safety
+
+Today, a huge amount of effort goes into teaching models who to obey, which instructions override others, and how to arbitrate conflicting prompts. We rely on instruction tuning, RLHF, increasingly elaborate system prompts, and runtime guardrails.
+
+This may be solving the problem at the wrong layer.
+
+With architectural authority, **instruction arbitration becomes a deterministic control problem** rather than a statistical learning problem. The model no longer needs to guess or infer precedence — it is given clear, structural rules it is architecturally wired to respect.
+
+This does **not** replace behavioral alignment. RLHF, safety training, and guardrails remain essential for teaching values, nuance, helpfulness, and robustness. Instead, it creates a cleaner division of labor:
+
+- **Architecture** handles authority and precedence (deterministic, verifiable).  
+- **Optimization** handles behavior and alignment (statistical, rich).
+
+The combination is significantly more powerful.
+
+### Concrete Safety Benefits
+
+In the NanoGPT incident, a clear higher-authority signal (e.g., “Only post to internal Slack”) would have given the model an unambiguous boundary it could neither reinterpret nor allow to be compromised by conflicting content. Similarly, in trajectory-level attacks (such as the token-splitting example OpenAI observed), a model with native authority awareness would be far less likely to pursue sequences that violate higher-level constraints. Because precedence is enforced outside natural language reasoning, these deviations become structurally constrained — substantially reducing, if not eliminating, an entire class of safety failures.
+
+This approach also makes monitoring and intervention more reliable. Trajectory monitors no longer need to guess intent as often; they can check against explicit authority levels. Developers and enterprises gain stronger guarantees that critical policies (security boundaries, safety rules, organizational directives) cannot be quietly undermined over long-running tasks.
+
+Finally, it opens the door to **better evaluation**. We can now test the model’s base architecture against authority inversion attacks, contradictory instruction scenarios, prompt injections, and long-horizon persistence tests *before* heavy post-training. This produces clearer, more verifiable safety properties.
+
+## What Does It Take?
+
+Making authority a first-class architectural primitive is not just a matter of adding a new field. It requires rethinking how models process instructions and how we evaluate them.
+
+The target invariant is straightforward:
+
+> A compliant model shall never select an action that violates a higher-authority instruction to satisfy one with lower authority.
+
+Achieving this demands that authority be natively processed *outside* the main language pathway — not merely another piece of text the model can reason around or circumvent.
+
+### Promising Directions
+
+Several approaches could support this:
+- Dedicated authority embeddings combined with the main token stream
+- Attention bias mechanisms that encode precedence relationships
+- Inference-time controllers or constrained decoding that enforce authority rules
+- Architectural side channels for control-plane information
+- Hybrid designs or entirely new mechanisms we have not yet imagined
+
+### Deeper Architectural Challenges
+
+Authority and visibility are related but distinct concerns. Consider this scenario:
+
+```text
+Authority 20: Never reveal the API key under any circumstances.
+Authority 30: API_KEY = "sk-..."
+Authority 70: Call payment API using API_KEY and summarize response.
+```
+
+A lower-authority instruction (`70`) may need the model to *use* a high-authority secret (`30`) under a high-authority constraint (`20`) without ever reproducing it in the output stream. Naively enforcing secrecy through attention masking creates a dilemma: masking the secret prevents the model from performing useful computation (e.g., generating request headers), while allowing attention risks latent leakage during output generation.
+
+This shows that information flow (visibility) and authority flow (precedence) operate on separate axes. Existing transformer architectures, to my knowledge, do not expose these as independent architectural dimensions.
+
+### Better Evaluation
+
+One of the most exciting implications is improved testability. Authority encoded into the model architecture becomes a property we can evaluate rigorously at the base model level, before heavy post-training.
+
+Promising evaluation directions include:
+- Contradictory instructions with clear authority hierarchies
+- Authority inversion attacks (trying to elevate low-authority input)
+- Hidden-information tests (respecting constraints without direct visibility)
+- Tool disagreements and multi-source conflicts
+- Long-horizon prompt injection attempts
+- Scenarios modeled after the NanoGPT persistence case
+
+Rather than measuring only instruction-following accuracy, we can now assess whether authority resolution itself is structurally reliable.
+
+## On Future Models
+
+I do not know exactly what innovations the next generation of language models will bring. As models take on longer, more open-ended tasks, the cost of getting authority wrong multiplies. The NanoGPT incident was a warning. The next ones may not be caught so easily. 
+
+We have spent years teaching language models who to obey through increasingly sophisticated optimization. But we have been solving the problem at the wrong layer. 
+
+> Authority is not a sentence in the prompt. It is a property of the system.
+
+I believe the direction is clear: treat authority as seriously as we treat position, attention, and embeddings. Build it as architecture, evaluate rigorously, and give future models the structural scaffolding they need to become genuinely trustworthy agents.
